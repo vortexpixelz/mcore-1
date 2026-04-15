@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcore-py"
+version = "0.1.0"
+description = "MCORE-1: Metrical Core Representation — language-agnostic prosodic data model, ternary weight algebra, and encoding system"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [
+    {name = "Jacob Walker", email = "jacob@drixon.io"},
+]
+keywords = ["prosody", "metrics", "computational-linguistics", "phonology", "sanskrit"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Text Processing :: Linguistic",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-cov", "ruff"]
+notebook = ["jupyter", "matplotlib"]
+all = ["mcore-py[dev,notebook]"]
+
+[project.scripts]
+mcore = "mcore_py.cli:main"
+
+[project.urls]
+Repository = "https://github.com/vortexpixelz/mcore1"
+Documentation = "https://github.com/vortexpixelz/mcore1/blob/main/docs/"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
