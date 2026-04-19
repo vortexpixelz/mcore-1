@@ -43,6 +43,21 @@ python -m mcore_py.cli decode "B810C" -a
 #   C  (12)  POP_FRAME
 ```
 
+## Development workflow commands
+
+The CLI includes three umbrella commands for environment and smoke checks:
+
+```bash
+# Verify local Python/tooling prerequisites
+python -m mcore_py.cli doctor
+
+# Run fast built-in smoke checks for parse/generate/encoding
+python -m mcore_py.cli smoke
+
+# Execute the demo notebook end-to-end
+python -m mcore_py.cli notebook-smoke
+```
+
 ## Architecture
 
 ```

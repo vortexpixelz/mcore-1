@@ -17,7 +17,10 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
+from pathlib import Path
+import subprocess
 import sys
 
 from mcore_py.model import Budget, Constituent, Level, ProsodicUnit, Tension, Trit
@@ -185,6 +188,92 @@ def cmd_info(_args: argparse.Namespace) -> int:
     return 0
 
 
+def _check_module_import(name: str) -> tuple[bool, str | None]:
+    """Return whether a module can be imported."""
+    try:
+        importlib.import_module(name)
+        return True, None
+    except Exception as exc:  # pragma: no cover - defensive, exact type not important
+        return False, str(exc)
+
+
+def cmd_doctor(_args: argparse.Namespace) -> int:
+    """Check local environment prerequisites."""
+    ok = True
+
+    if sys.version_info < (3, 11):
+        print(f"ERROR: Python >=3.11 required, found {sys.version.split()[0]}")
+        ok = False
+    else:
+        print(f"Python: {sys.version.split()[0]} (ok)")
+
+    for module_name in ("pytest", "matplotlib"):
+        installed, error = _check_module_import(module_name)
+        if installed:
+            print(f"{module_name}: ok")
+        else:
+            print(f"{module_name}: missing ({error})")
+            ok = False
+
+    if ok:
+        print("DOCTOR OK")
+        return 0
+
+    print("DOCTOR FAILED")
+    return 1
+
+
+def cmd_smoke(_args: argparse.Namespace) -> int:
+    """Run lightweight built-in smoke checks."""
+    trits = parse_pattern("01")
+    if trits_to_str(trits) != "u –":
+        print("SMOKE FAILED: pattern parse/render mismatch")
+        return 1
+
+    budget = Budget(min_weight=Trit.S3, max_weight=Trit.S3, exact=True)
+    patterns = enumerate_patterns(3, budget)
+    if len(patterns) != 6:
+        print("SMOKE FAILED: unexpected pattern count")
+        return 1
+
+    stream = to_base64tme([11, 8, 1, 0, 12])
+    if stream != "B810C":
+        print("SMOKE FAILED: Base64-TME mismatch")
+        return 1
+
+    print("SMOKE OK")
+    return 0
+
+
+def cmd_notebook_smoke(args: argparse.Namespace) -> int:
+    """Execute the demo notebook through nbconvert."""
+    notebook_path = Path(args.notebook)
+    if not notebook_path.exists():
+        print(f"Notebook not found: {notebook_path}")
+        return 1
+
+    cmd = [
+        sys.executable,
+        "-m",
+        "nbconvert",
+        "--to",
+        "notebook",
+        "--execute",
+        str(notebook_path),
+        "--output",
+        "/tmp/mcore_notebook_smoke.ipynb",
+    ]
+    proc = subprocess.run(cmd, capture_output=True, text=True)
+    if proc.returncode != 0:
+        print("NOTEBOOK SMOKE FAILED")
+        if proc.stderr.strip():
+            print(proc.stderr.strip())
+        return 1
+
+    print("NOTEBOOK SMOKE OK")
+    return 0
+
+
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
@@ -226,6 +315,26 @@ def main(argv: list[str] | None = None) -> int:
     # info
     sub.add_parser("info", help="Show version and conformance info")
 
+    # doctor
+    sub.add_parser("doctor", help="Check local development environment")
+
+    # smoke
+    sub.add_parser("smoke", help="Run lightweight CLI smoke checks")
+
+    # notebook-smoke
+    p_nb = sub.add_parser("notebook-smoke", help="Execute a notebook smoke test")
+    p_nb.add_argument(
+        "--notebook",
+        default="notebooks/mcore1_demo.ipynb",
+        help="Path to notebook file to execute",
+    )
+    p_nb.add_argument(
+        "--timeout",
+        type=int,
+        default=120,
+        help="Reserved for compatibility (seconds)",
+    )
+
     args = parser.parse_args(argv)
     if args.command is None:
         parser.print_help()
@@ -238,6 +347,9 @@ def main(argv: list[str] | None = None) -> int:
         "decode": cmd_decode,
         "scansion": cmd_scansion,
         "info": cmd_info,
+        "doctor": cmd_doctor,
+        "smoke": cmd_smoke,
+        "notebook-smoke": cmd_notebook_smoke,
     }
 
     return dispatch[args.command](args)
