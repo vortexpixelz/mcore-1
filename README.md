@@ -107,4 +107,4 @@ MIT
 
 ## Author
 
-Jacob Walker · [Datadrix](https://github.com/vortexpixelz) · [@0xqualier](https://x.com/0xqualier)
+Jacob Walker · [Datadrix](https://github.com/vortexpixelz) · [@WalkerJaco38855](https://x.com/WalkerJaco38855)
