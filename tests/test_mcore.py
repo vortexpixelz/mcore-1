@@ -3,6 +3,9 @@ Comprehensive test suite for mcore-py.
 Tests organized by spec section.
 """
 
+import argparse
+import subprocess
+
 import pytest
 
 from mcore_py.model import (
@@ -30,6 +33,7 @@ from mcore_py.overlays.quantitative_metrics import (
     QuantitativeMetrics, SyllableType, SyncopationType,
     classify_syllable, resolve_heavy,
 )
+from mcore_py import cli as mcore_cli
 from mcore_py.cli import parse_pattern, trits_to_str
 
 
@@ -518,3 +522,72 @@ class TestCLI:
     def test_invalid_char(self):
         with pytest.raises(ValueError):
             parse_pattern("xyz")
+
+
+class TestCLIUmbrellaCommands:
+    """Tests for workflow-oriented CLI commands."""
+
+    def test_cmd_doctor_success(self, monkeypatch, capsys):
+        monkeypatch.setattr(mcore_cli.sys, "version_info", (3, 12, 0))
+        monkeypatch.setattr(mcore_cli, "_check_module_import", lambda _name: (True, None))
+
+        result = mcore_cli.cmd_doctor(argparse.Namespace())
+
+        output = capsys.readouterr().out
+        assert result == 0
+        assert "DOCTOR OK" in output
+
+    def test_cmd_doctor_failure(self, monkeypatch, capsys):
+        monkeypatch.setattr(mcore_cli.sys, "version_info", (3, 10, 0))
+
+        def fake_import_check(name: str):
+            if name == "pytest":
+                return False, "missing"
+            return True, None
+
+        monkeypatch.setattr(mcore_cli, "_check_module_import", fake_import_check)
+
+        result = mcore_cli.cmd_doctor(argparse.Namespace())
+
+        output = capsys.readouterr().out
+        assert result == 1
+        assert "DOCTOR FAILED" in output
+
+    def test_cmd_smoke_success(self, capsys):
+        result = mcore_cli.cmd_smoke(argparse.Namespace())
+
+        output = capsys.readouterr().out
+        assert result == 0
+        assert "SMOKE OK" in output
+
+    def test_cmd_notebook_smoke_missing_file(self, tmp_path, capsys):
+        notebook_path = tmp_path / "does-not-exist.ipynb"
+        args = argparse.Namespace(notebook=str(notebook_path), timeout=5)
+
+        result = mcore_cli.cmd_notebook_smoke(args)
+
+        output = capsys.readouterr().out
+        assert result == 1
+        assert "not found" in output
+
+    def test_cmd_notebook_smoke_success(self, monkeypatch, tmp_path, capsys):
+        notebook_path = tmp_path / "demo.ipynb"
+        notebook_path.write_text("{}", encoding="utf-8")
+        args = argparse.Namespace(notebook=str(notebook_path), timeout=10)
+
+        observed = {}
+
+        def fake_run(cmd, capture_output, text):
+            observed["cmd"] = cmd
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="ok", stderr="")
+
+        monkeypatch.setattr(mcore_cli.subprocess, "run", fake_run)
+
+        result = mcore_cli.cmd_notebook_smoke(args)
+
+        output = capsys.readouterr().out
+        assert result == 0
+        assert "NOTEBOOK SMOKE OK" in output
+        assert observed["cmd"][0] == mcore_cli.sys.executable
+        assert "--execute" in observed["cmd"]
+        assert str(notebook_path) in observed["cmd"]

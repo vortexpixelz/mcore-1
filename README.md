@@ -10,6 +10,8 @@ Existing metrical annotation systems (TEI, ToBI) share three limitations: they a
 
 The core idea: **ternary weight** (light / heavy / superheavy) as a primitive, with a formal **trit algebra** that supports both analysis ("is this line well-formed?") and generation ("what are all valid lines for this meter?"). The system is extensible via **tradition-specific overlays** — Sanskrit, Greek, Arabic, Chinese, and Japanese prosody all map onto the same algebra.
 
+Beyond prosody, this repository treats MCORE-1 as a general purpose state-structure formalism: any sequential system that needs machine-checkable conservation, bounded transitions, and compact symbolic encoding can be represented as constrained trees and validated with the same algebra/checker stack. In that framing, meter is the first concrete domain and validation substrate, while AI-state verification and interpretability workflows are downstream applications of the same core representation machinery.
+
 ## Quick start
 
 ```bash
@@ -41,6 +43,21 @@ python -m mcore_py.cli decode "B810C" -a
 #   1  ( 1)  SET_WEIGHT_S2
 #   0  ( 0)  SET_WEIGHT_S1
 #   C  (12)  POP_FRAME
+```
+
+## Development workflow commands
+
+The CLI includes three umbrella commands for environment and smoke checks:
+
+```bash
+# Verify local Python/tooling prerequisites
+python -m mcore_py.cli doctor
+
+# Run fast built-in smoke checks for parse/generate/encoding
+python -m mcore_py.cli smoke
+
+# Execute the demo notebook end-to-end
+python -m mcore_py.cli notebook-smoke
 ```
 
 ## Architecture
