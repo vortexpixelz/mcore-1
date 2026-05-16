@@ -2,10 +2,11 @@
 Tradition-Specific Overlays
 ============================
 
-Overlays extend MCORE-1 for specific prosodic traditions.
+Overlays extend MCORE-1 for specific domains.
 
 Complete:
   - QuantitativeMetrics: Indo-European quantitative meters
+  - QuantumResourceMetrics: Quantum OS resource scheduling (MCORE-Q)
 
 Stubs:
   - ArabicArud: Arabic 'arud system
@@ -14,5 +15,6 @@ Stubs:
 """
 
 from mcore_py.overlays.quantitative_metrics import QuantitativeMetrics
+from mcore_py.overlays.quantum import QuantumResourceMetrics
 
-__all__ = ["QuantitativeMetrics"]
+__all__ = ["QuantitativeMetrics", "QuantumResourceMetrics"]
