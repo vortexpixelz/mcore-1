@@ -379,13 +379,46 @@ class MethylationMetrics:
                 f"labels length {len(labels)} != betas length {len(betas)}"
             )
 
-        clusters = []
-        for i, b in enumerate(betas):
-            lbl = labels[i] if labels is not None else f"cg{i:04d}"
-            s = cpg_site(b, label=lbl)
-            clusters.append(cpg_cluster(s, label=f"cluster_{lbl}"))
+        # Classify island by mean beta across all sites. This avoids trit-addition
+        # overflow for islands with many unmethylated sites (e.g. normal promoters
+        # with 10+ CpGs), while still detecting aberrant hypermethylation (S3 mean).
+        mean_beta = sum(betas) / len(betas)
+        island_state = classify_cpg(mean_beta)
+        island_weight = cpg_weight(island_state)
 
-        return cpg_island(*clusters, budget=budget, label=island_label)
+        if island_state == MethylationState.FULLY_METHYLATED:
+            raise ValueError(
+                f"CpG island overflow: mean beta {mean_beta:.3f} indicates "
+                f"aberrant hypermethylation (FULLY_METHYLATED). "
+                f"Aberrant hypermethylation — flag for oncological review."
+            )
+
+        site_labels = [
+            labels[i] if labels is not None else f"cg{i:04d}"
+            for i in range(len(betas))
+        ]
+        summary_cluster = ProsodicUnit(
+            weight=island_weight,
+            level=Level.L1_AKSARA,
+            label="summary_cluster",
+            features={
+                "cpg_count": len(betas),
+                "mean_beta": mean_beta,
+                "site_labels": site_labels,
+                "methylation_state": island_state.name,
+            },
+        )
+        island_parent = ProsodicUnit(
+            weight=island_weight,
+            level=Level.L2_GANA,
+            label=island_label,
+            features={"cluster_count": 1, "cpg_count": len(betas)},
+        )
+        return Constituent(
+            parent=island_parent,
+            children=[summary_cluster],
+            budget=budget,
+        )
 
     @staticmethod
     def decoherence_trajectory(
