@@ -530,6 +530,14 @@ def main() -> int:
     print("  MCORE-1 / SPARC  —  Symonic LLC")
     print("=" * 72)
 
+    if not BIC_RESULTS:
+        print("\n  ERROR: No BIC results loaded.")
+        print("  Run S3_Cosmological_Crystallization_Analysis.ipynb to generate")
+        print("  bic_results.csv, then re-run this script.")
+        print("\n  STAGE 1 — skipped (no BIC data)")
+        print("  STAGE 4 — skipped (no BIC data)")
+        return 1
+
     stage_banner(1, "SPARC download & parse")
     sparc_df = build_sparc_df(local_mrt=args.local_mrt)
 
