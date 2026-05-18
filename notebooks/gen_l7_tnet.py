@@ -115,18 +115,26 @@ cells.append(code("""\
 # ── S3Crystallizer ────────────────────────────────────────────────────────────
 class S3Crystallizer(nn.Module):
     \"\"\"
-    S3 prior: maps a hidden vector to one of 6 permutation states via Gumbel-softmax.
-    Returns (s3_one_hot, logits).
+    S3 prior: maps a hidden vector to one of 6 permutation states via Gumbel-softmax,
+    then projects the selected state through a learned basis into hidden_dim space.
+    The basis vectors are distinct learnable embeddings, one per S3 group element.
+    Returns (s3_one_hot, s3_embed, logits).
     \"\"\"
-    def __init__(self, input_dim, tau=1.0):
+    def __init__(self, input_dim, hidden_dim, tau=1.0):
         super().__init__()
         self.tau       = tau
         self.s3_logits = nn.Linear(input_dim, 6)
+        # 6 learnable basis vectors — one per S3 group element
+        self.s3_basis  = nn.Linear(6, hidden_dim, bias=False)
 
     def forward(self, x):
         logits   = self.s3_logits(x)                              # (B, 6)
         s3_state = F.gumbel_softmax(logits, tau=self.tau, hard=True)  # (B, 6)
-        return s3_state, logits
+        # Project one-hot through learned basis: each state maps to a distinct
+        # hidden-dim vector. This gives the crystallization actual effect —
+        # different S3 states push the sequence encoding in different directions.
+        s3_embed = self.s3_basis(s3_state)                        # (B, H)
+        return s3_state, s3_embed, logits
 
 
 # ── ZigzagFusion ──────────────────────────────────────────────────────────────
@@ -160,7 +168,7 @@ class ZigzagTNet(nn.Module):
     def __init__(self, freq_bins=FREQ_BINS, hidden_dim=HIDDEN_DIM):
         super().__init__()
         self.encoder    = nn.Linear(freq_bins, hidden_dim)
-        self.s3_head    = S3Crystallizer(hidden_dim)
+        self.s3_head    = S3Crystallizer(hidden_dim, hidden_dim)
         self.zigzag     = ZigzagFusion(hidden_dim)
         self.decoder    = nn.Linear(hidden_dim, freq_bins)
         self.t_star_head = nn.Linear(hidden_dim, 1)
@@ -172,16 +180,14 @@ class ZigzagTNet(nn.Module):
 
         # Global state for S3 head and t_star regression
         global_h = encoded.mean(dim=1)              # (B, H)
-        s3_cryst, s3_logits = self.s3_head(global_h)  # (B,6), (B,6)
+        s3_cryst, s3_embed, s3_logits = self.s3_head(global_h)  # (B,6), (B,H), (B,6)
 
-        # Use s3_cryst as a learned 6-way gate projected onto hidden dim via dot
-        # Simple approach: treat it as a scalar weight summed with the global mean
-        # to scale the sequence before zigzag (shape-safe)
-        # s3_cryst is (B,6); project to scalar per sample
-        s3_gate  = s3_cryst.sum(dim=-1, keepdim=True).unsqueeze(1)  # (B,1,1)
-        encoded_gated = encoded * s3_gate            # (B, T, H)
+        # Add S3 basis embedding as a learned residual bias over the time axis.
+        # Different S3 states produce distinct (B, H) offsets, so the crystallization
+        # actually steers the sequence encoding — not a scalar gate of constant 1.0.
+        encoded_biased = encoded + s3_embed.unsqueeze(1)  # (B, T, H)
 
-        zagged   = self.zigzag(encoded_gated)        # (B, T, H)
+        zagged   = self.zigzag(encoded_biased)       # (B, T, H)
         imputed  = self.decoder(zagged).permute(0, 2, 1)  # (B, F, T)
 
         # t_hat: use global mean of zagged output, predict normalised t_star
@@ -292,7 +298,7 @@ for ax, hist, label, color in zip(
     ax.grid(True, alpha=0.3)
 plt.suptitle("ZigzagTNet Training Curves", fontsize=13)
 plt.tight_layout()
-plt.savefig("/home/user/mcore-1/notebooks/L7_loss_curves.png", dpi=100)
+plt.savefig("L7_loss_curves.png", dpi=100)
 plt.show()
 print("Loss curves saved.")
 """))
@@ -323,7 +329,7 @@ for ax, data, title in zip(
     ax.set_xlabel("Time frames")
     ax.set_ylabel("Frequency bins")
 plt.tight_layout()
-plt.savefig("/home/user/mcore-1/notebooks/L7_stft_vis.png", dpi=100)
+plt.savefig("L7_stft_vis.png", dpi=100)
 plt.show()
 """))
 
@@ -389,7 +395,7 @@ for bar, frac in zip(bars, fractions):
     ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.005,
             f"{frac:.3f}", ha='center', va='bottom', fontsize=9)
 plt.tight_layout()
-plt.savefig("/home/user/mcore-1/notebooks/L7_s3_histogram.png", dpi=100)
+plt.savefig("L7_s3_histogram.png", dpi=100)
 plt.show()
 
 most_selected = int(state_counts.argmax().item())
@@ -474,7 +480,9 @@ notebook = {
     "cells": cells
 }
 
-with open("/home/user/mcore-1/notebooks/L7_TNet_Imputation.ipynb", "w") as f:
+import pathlib
+_out = pathlib.Path(__file__).with_name("L7_TNet_Imputation.ipynb")
+with open(_out, "w") as f:
     json.dump(notebook, f, indent=1)
 
 print("Notebook written.")
