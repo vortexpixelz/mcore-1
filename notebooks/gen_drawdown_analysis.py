@@ -40,6 +40,10 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
+# Deterministic seed — all random draws reproducible across runs
+SEED = 42
+np.random.seed(SEED)
+
 plt.rcParams.update({
     'figure.dpi': 120,
     'axes.spines.top': False,
@@ -371,6 +375,9 @@ md([
 code("""
 import torch
 import torch.nn.functional as F
+
+torch.manual_seed(SEED)
+np.random.seed(SEED)
 
 # Re-use DecaySTFTGenerator from L7 notebook
 class DecaySTFTGenerator:

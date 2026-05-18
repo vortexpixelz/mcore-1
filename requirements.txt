@@ -1,0 +1,21 @@
+# Core analysis stack — pinned for reproducibility
+numpy==2.4.5
+scipy==1.17.1
+matplotlib==3.10.9
+torch==2.12.0
+scikit-learn==1.6.1
+pandas==2.2.3
+requests==2.32.3
+
+# Notebook execution
+jupyter==1.1.1
+jupyterlab==4.5.7
+nbconvert==7.17.1
+nbclient==0.10.4
+jupyter_client==8.8.0
+jupyter_core==5.9.1
+
+# Dev / test
+pytest==9.0.3
+pytest-cov==6.1.0
+ruff==0.11.12
