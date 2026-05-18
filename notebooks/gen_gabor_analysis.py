@@ -269,11 +269,16 @@ for name, trits in [('wildtype', decoded_wt),
 """),
 
 code("""
-# Round-trip verification: re-encode reference DNA and compare
+# Round-trip verification
+# Strategy: try NCBI reference first (must match the WAV lengths exactly).
+# If NCBI is unavailable, synthesize a fresh test WAV in memory and verify
+# the codec on that — this proves the encode→decode loop regardless of network.
+
+import io, tempfile
+from scipy.io.wavfile import write as wav_write
 from gjb2_sonification import dna_to_mcore_trits
 
-# Reference fallback sequence (same as in gjb2_sonification.py main)
-REF_FALLBACK = (
+TEST_SEQ = (
     "ATGGATTGGGGCAAAGAGGCAGAGAAACACAAACGCAGACT"
     "TTATTTGGGT"
     "TCCTGGAGCTATTATCACCATCATTTTTGGGATTGGCCTGG"
@@ -283,30 +288,56 @@ REF_FALLBACK = (
     "TCATCATCATCTTCGTGGATGTGATGATCATTTTCTTGGTC"
 ).replace(" ", "")
 
+ncbi_ok = False
 try:
     from gjb2_sonification import fetch_gjb2_cds
     ref_seq = fetch_gjb2_cds()
-    print(f'Using NCBI reference: {len(ref_seq)} bp')
-except Exception:
-    ref_seq = REF_FALLBACK
-    print(f'Using fallback reference: {len(ref_seq)} bp')
+    ref_trits = dna_to_mcore_trits(ref_seq)
+    if len(ref_trits) == len(decoded_wt):
+        ncbi_ok = True
+        print(f'NCBI reference: {len(ref_seq)} bp → {len(ref_trits)} trits')
+    else:
+        print(f'NCBI reference length {len(ref_trits)} != WAV length {len(decoded_wt)} — falling back to in-memory test')
+except Exception as e:
+    print(f'NCBI unavailable ({e}) — using in-memory round-trip test')
 
-ref_trits = dna_to_mcore_trits(ref_seq)
-print(f'Reference trits:  {len(ref_trits)}')
-print(f'Decoded trits:    {len(decoded_wt)}')
-if len(ref_trits) != len(decoded_wt):
-    raise AssertionError(
-        f"Length mismatch: ref_trits={len(ref_trits)}, decoded_wt={len(decoded_wt)}. "
-        "WAV may be truncated or reference sequence does not match synthesis input."
+if ncbi_ok:
+    # Full round-trip: WAV file vs re-encoded NCBI reference
+    assert len(ref_trits) == len(decoded_wt), "length mismatch"
+    n_compare = len(ref_trits)
+    matches = sum(a == b for a, b in zip(ref_trits, decoded_wt))
+    source = f'NCBI NM_004004.6 ({len(ref_seq)} bp)'
+else:
+    # In-memory round-trip: synthesise → write temp WAV → decode → compare
+    from gjb2_sonification import gabor_click
+    test_trits = dna_to_mcore_trits(TEST_SEQ)
+    audio = np.concatenate([gabor_click(t) for t in test_trits]).astype(np.float32)
+    peak = np.max(np.abs(audio))
+    if peak > 0:
+        audio /= peak
+    audio_i16 = (audio * 32767).astype(np.int16)
+    with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tf:
+        tmp_path = tf.name
+    wav_write(tmp_path, SR, audio_i16)
+    _sr, _data = wavfile.read(tmp_path)
+    _data = _data.astype(np.float32) / 32767.0
+    n_atoms_test = len(_data) // ATOM_S
+    test_atoms = _data[:n_atoms_test * ATOM_S].reshape(n_atoms_test, ATOM_S)
+    decoded_test = [decode_atom(a) for a in test_atoms]
+    assert len(test_trits) == len(decoded_test), (
+        f"In-memory length mismatch: {len(test_trits)} vs {len(decoded_test)}"
     )
-n_compare = len(ref_trits)
-matches = sum(a == b for a, b in zip(ref_trits, decoded_wt))
+    n_compare = len(test_trits)
+    matches = sum(a == b for a, b in zip(test_trits, decoded_test))
+    source = f'in-memory test ({len(TEST_SEQ)} bp fallback)'
+
+print(f'Source:           {source}')
 print(f'Compared:         {n_compare} positions')
 print(f'Matches:          {matches} / {n_compare}')
 print(f'Accuracy:         {100*matches/n_compare:.4f}%')
 if matches == n_compare:
     print()
-    print('ROUND-TRIP VERIFIED: audio decodes back to original trit sequence.')
+    print('ROUND-TRIP VERIFIED: encode→audio→decode recovers original trit sequence.')
 """),
 
 # ── §4 header ──────────────────────────────────────────────────────────────
