@@ -7,6 +7,7 @@ Overlays extend MCORE-1 for specific domains.
 Complete:
   - QuantitativeMetrics: Indo-European quantitative meters
   - QuantumResourceMetrics: Quantum OS resource scheduling (MCORE-Q)
+  - MethylationMetrics: CpG methylation analysis (Domain 02 extension)
 
 Stubs:
   - ArabicArud: Arabic 'arud system
@@ -14,7 +15,8 @@ Stubs:
   - JapaneseMora: Japanese mora-timed prosody
 """
 
+from mcore_py.overlays.methylation import MethylationMetrics
 from mcore_py.overlays.quantitative_metrics import QuantitativeMetrics
 from mcore_py.overlays.quantum import QuantumResourceMetrics
 
-__all__ = ["QuantitativeMetrics", "QuantumResourceMetrics"]
+__all__ = ["MethylationMetrics", "QuantitativeMetrics", "QuantumResourceMetrics"]
