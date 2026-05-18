@@ -535,6 +535,8 @@ def main() -> int:
         print("  Run S3_Cosmological_Crystallization_Analysis.ipynb to generate")
         print("  bic_results.csv, then re-run this script.")
         print("\n  STAGE 1 — skipped (no BIC data)")
+        print("  STAGE 2 — skipped (no BIC data)")
+        print("  STAGE 3 — skipped (no BIC data)")
         print("  STAGE 4 — skipped (no BIC data)")
         return 1
 
