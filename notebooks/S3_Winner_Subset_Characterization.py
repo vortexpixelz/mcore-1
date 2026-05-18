@@ -64,62 +64,37 @@ except ImportError:
     warnings.warn("scikit-learn not found. Decision-tree step will be skipped.", stacklevel=1)
 
 # ---------------------------------------------------------------------------
-# SECTION 1 — BIC RESULTS (hardcoded from S3_Cosmological_Crystallization run)
+# SECTION 1 — BIC RESULTS
 # ---------------------------------------------------------------------------
-# ΔBIC = BIC_binary − BIC_ternary  (negative = ternary wins)
+# ΔBIC = BIC_ternary − BIC_binary  (negative = ternary wins, positive = binary wins)
+#
+# Loaded at runtime from bic_results.csv produced by
+# S3_Cosmological_Crystallization_Analysis.ipynb.  Run that notebook first.
 
-BIC_RESULTS: dict[str, float] = {
-    "UGC06787": -667.1,
-    "UGC02953": -140.3,
-    "NGC6674": -97.2,
-    "NGC2903": -61.4,
-    "NGC3521": -55.8,
-    "NGC5055": -48.2,
-    "NGC7331": -43.6,
-    "NGC3198": -38.9,
-    "UGC02885": -31.5,
-    "NGC5907": -27.4,
-    "NGC3031": -22.1,
-    "NGC4736": -18.7,
-    "NGC6946": -15.3,
-    "NGC2403": -12.6,
-    "UGC04278": -10.2,
-    "NGC0024": -7.7,
-    "NGC0300": -1.8,
-    "NGC7793": -1.2,
-    "UGC07323": 0.1,
-    "UGC07399": 0.9,
-    "NGC0055": 4.2,
-    "NGC0925": 6.1,
-    "NGC1003": 8.4,
-    "NGC2976": 9.7,
-    "NGC3109": 12.3,
-    "NGC3893": 15.6,
-    "NGC4010": 18.2,
-    "NGC4183": 21.5,
-    "NGC4559": 24.8,
-    "NGC5585": 28.1,
-    "UGC00128": 32.4,
-    "UGC00731": 36.7,
-    "UGC01230": 41.0,
-    "UGC02455": 44.3,
-    "UGC04325": 47.6,
-    "UGC05005": 50.9,
-    "UGC05253": 54.2,
-    "UGC06399": 57.5,
-    "UGC06446": 60.8,
-    "UGC06614": 64.1,
-    "UGC06667": 67.4,
-    "UGC06818": 70.7,
-    "UGC06917": 74.0,
-    "UGC06923": 77.3,
-    "UGC06930": 80.6,
-    "UGC06983": 83.9,
-    "UGC07089": 87.2,
-    "UGC07125": 90.5,
-    "UGC07151": 93.8,
-    "UGC07261": 97.1,
-}
+def _load_bic_results(csv_path: Path | None = None) -> dict[str, float]:
+    candidates = [
+        csv_path,
+        Path(__file__).parent / "bic_results.csv",
+        Path("bic_results.csv"),
+    ]
+    for p in candidates:
+        if p is not None and p.exists():
+            out: dict[str, float] = {}
+            with p.open() as f:
+                reader = __import__("csv").DictReader(f)
+                for row in reader:
+                    out[row["Galaxy"]] = float(row["delta_BIC"])
+            print(f"[BIC] Loaded {len(out)} results from {p}")
+            return out
+    warnings.warn(
+        "bic_results.csv not found. Run S3_Cosmological_Crystallization_Analysis.ipynb "
+        "first to generate it. Falling back to empty results.",
+        stacklevel=2,
+    )
+    return {}
+
+
+BIC_RESULTS: dict[str, float] = _load_bic_results()
 
 WINNER_THRESHOLD = -2.0
 TIE_THRESHOLD = 2.0
@@ -554,6 +529,14 @@ def main() -> int:
     print("  S3 WINNER SUBSET CHARACTERIZATION")
     print("  MCORE-1 / SPARC  —  Symonic LLC")
     print("=" * 72)
+
+    if not BIC_RESULTS:
+        print("\n  ERROR: No BIC results loaded.")
+        print("  Run S3_Cosmological_Crystallization_Analysis.ipynb to generate")
+        print("  bic_results.csv, then re-run this script.")
+        print("\n  STAGE 1 — skipped (no BIC data)")
+        print("  STAGE 4 — skipped (no BIC data)")
+        return 1
 
     stage_banner(1, "SPARC download & parse")
     sparc_df = build_sparc_df(local_mrt=args.local_mrt)

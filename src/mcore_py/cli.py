@@ -275,6 +275,59 @@ def cmd_notebook_smoke(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
+# Audio commands
+# ---------------------------------------------------------------------------
+
+def cmd_audio_encode(args: argparse.Namespace) -> int:
+    """Synthesise a trit sequence into a Gaussian-phonon WAV file."""
+    from mcore_py.audio import encode_wav, TRIT_FREQS
+
+    raw = args.trits.strip()
+    try:
+        trits = [int(c) for c in raw if c in "012"]
+    except ValueError:
+        print(f"ERROR: trit string must contain only 0, 1, 2; got {raw!r}")
+        return 1
+
+    if not trits:
+        print("ERROR: empty trit sequence")
+        return 1
+
+    out = encode_wav(trits, args.output)
+    carriers = ", ".join(f"S{i+1}={f:.0f} Hz" for i, f in TRIT_FREQS.items())
+    print(f"Wrote {out}  ({len(trits)} atoms, carriers: {carriers})")
+    return 0
+
+
+def cmd_audio_decode(args: argparse.Namespace) -> int:
+    """Decode a trit WAV file to a trit sequence."""
+    import json
+    from mcore_py.audio import decode_wav
+
+    method = getattr(args, "method", "cochlear")
+    try:
+        trits = decode_wav(args.wav, method=method)
+    except Exception as exc:
+        print(f"ERROR: {exc}")
+        return 1
+
+    if args.output:
+        Path(args.output).write_text(json.dumps({"trits": trits, "method": method}))
+        print(f"Decoded {len(trits)} trits -> {args.output}  (method={method})")
+    else:
+        print("".join(str(t) for t in trits))
+    return 0
+
+
+def cmd_audio(args: argparse.Namespace) -> int:
+    dispatch = {"encode": cmd_audio_encode, "decode": cmd_audio_decode}
+    if args.audio_cmd not in dispatch:
+        print(f"Unknown audio subcommand: {args.audio_cmd!r}")
+        return 1
+    return dispatch[args.audio_cmd](args)
+
+
+# ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 
@@ -323,6 +376,24 @@ def main(argv: list[str] | None = None) -> int:
 
     # notebook-smoke
     p_nb = sub.add_parser("notebook-smoke", help="Execute a notebook smoke test")
+
+    # audio (cochlear encode/decode)
+    p_audio = sub.add_parser("audio", help="Synthesise or decode Gaussian-phonon WAV files")
+    audio_sub = p_audio.add_subparsers(dest="audio_cmd")
+
+    p_aenc = audio_sub.add_parser("encode",
+        help="Synthesise trit sequence -> WAV (Gaussian phonon atoms)")
+    p_aenc.add_argument("trits", help="Trit string, e.g. '012102'")
+    p_aenc.add_argument("--output", "-o", default="trits.wav",
+                        help="Output WAV path (default: trits.wav)")
+
+    p_adec = audio_sub.add_parser("decode",
+        help="Decode WAV -> trit sequence")
+    p_adec.add_argument("wav", help="Input WAV file")
+    p_adec.add_argument("--method", choices=["fft", "cochlear"], default="cochlear",
+                        help="Decoder: cochlear (tonotopic, default) or fft")
+    p_adec.add_argument("--output", "-o", default=None,
+                        help="Write JSON output to file (default: stdout)")
     p_nb.add_argument(
         "--notebook",
         default="notebooks/mcore1_demo.ipynb",
@@ -350,6 +421,7 @@ def main(argv: list[str] | None = None) -> int:
         "doctor": cmd_doctor,
         "smoke": cmd_smoke,
         "notebook-smoke": cmd_notebook_smoke,
+        "audio": cmd_audio,
     }
 
     return dispatch[args.command](args)

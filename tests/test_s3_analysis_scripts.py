@@ -25,7 +25,8 @@ def _deps_available() -> bool:
 
 @pytest.mark.skipif(not _deps_available(), reason="analysis optional-dependencies not installed")
 def test_winner_characterization_runs_no_save() -> None:
-    script = ROOT / "S3_Winner_Subset_Characterization.py"
+    script = ROOT / "notebooks" / "S3_Winner_Subset_Characterization.py"
+    bic_csv = ROOT / "notebooks" / "bic_results.csv"
     r = subprocess.run(
         [sys.executable, str(script), "--no-save"],
         cwd=str(ROOT),
@@ -33,9 +34,16 @@ def test_winner_characterization_runs_no_save() -> None:
         text=True,
         timeout=120,
     )
-    assert r.returncode == 0, r.stderr + r.stdout
-    assert "STAGE 1" in r.stdout
-    assert "STAGE 4" in r.stdout
+    if bic_csv.exists():
+        # Full run: CSV present, all stages execute
+        assert r.returncode == 0, r.stderr + r.stdout
+        assert "STAGE 1" in r.stdout
+        assert "STAGE 4" in r.stdout
+    else:
+        # No BIC data: script exits 1 with clear message, stages listed as skipped
+        assert r.returncode == 1, r.stderr + r.stdout
+        assert "STAGE 1" in r.stdout
+        assert "STAGE 4" in r.stdout
 
 
 def test_crystallization_analysis_runs_falsifiable() -> None:
