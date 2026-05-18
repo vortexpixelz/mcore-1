@@ -375,8 +375,9 @@ with torch.no_grad():
     for _ in range(100):
         masked_b, _, _, _ = generator.generate_batch(BATCH_SIZE)
         _, _, s3_logits_b = model(masked_b)
-        # argmax of one-hot Gumbel-softmax
-        winners = F.gumbel_softmax(s3_logits_b, tau=1.0, hard=True).argmax(dim=-1)
+        # argmax of logits — measures the model's deterministic preference,
+        # not a new stochastic sample (which would differ from what was used in forward)
+        winners = s3_logits_b.argmax(dim=-1)
         for w in winners:
             state_counts[w.item()] += 1
 
