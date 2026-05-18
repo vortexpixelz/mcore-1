@@ -57,7 +57,18 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
-sys.path.insert(0, '/home/user/gjb2-mcore-sonification/code')
+import os, pathlib as _pl
+_HERE = _pl.Path(os.path.abspath(''))  # notebook working directory at runtime
+_GJB2 = _pl.Path(os.environ.get(
+    'GJB2_REPO',
+    str(_HERE.parent.parent / 'gjb2-mcore-sonification'),
+))
+if not _GJB2.exists():
+    raise FileNotFoundError(
+        f"gjb2-mcore-sonification repo not found at {_GJB2}. "
+        "Set the GJB2_REPO environment variable to its location."
+    )
+sys.path.insert(0, str(_GJB2 / 'code'))
 
 plt.rcParams.update({
     'figure.dpi': 120,
@@ -75,7 +86,7 @@ TRIT_FREQS = np.array([800, 1600, 3200])
 TRIT_COLORS = {0: '#4BA3C7', 1: '#C97E08', 2: '#E05A5A'}
 GABOR_LIMIT = 1 / (4 * np.pi)
 
-AUDIO = '/home/user/gjb2-mcore-sonification/audio/'
+AUDIO = str(_GJB2 / 'audio') + '/'
 print(f'Gabor limit  1/(4pi) = {GABOR_LIMIT:.6f}')
 print(f'Theoretical sigma_t  = {SIGMA_GAUSS/np.sqrt(2)*1000:.3f} ms')
 print(f'Theoretical sigma_f  = {1/(2*np.pi*np.sqrt(2)*SIGMA_GAUSS):.3f} Hz')
@@ -281,11 +292,15 @@ except Exception:
     print(f'Using fallback reference: {len(ref_seq)} bp')
 
 ref_trits = dna_to_mcore_trits(ref_seq)
-n_compare = min(len(ref_trits), len(decoded_wt))
-matches = sum(a == b for a, b in zip(ref_trits[:n_compare], decoded_wt[:n_compare]))
-
 print(f'Reference trits:  {len(ref_trits)}')
 print(f'Decoded trits:    {len(decoded_wt)}')
+if len(ref_trits) != len(decoded_wt):
+    raise AssertionError(
+        f"Length mismatch: ref_trits={len(ref_trits)}, decoded_wt={len(decoded_wt)}. "
+        "WAV may be truncated or reference sequence does not match synthesis input."
+    )
+n_compare = len(ref_trits)
+matches = sum(a == b for a, b in zip(ref_trits, decoded_wt))
 print(f'Compared:         {n_compare} positions')
 print(f'Matches:          {matches} / {n_compare}')
 print(f'Accuracy:         {100*matches/n_compare:.4f}%')
@@ -485,7 +500,7 @@ nb = {
     "cells": cells,
 }
 
-out = pathlib.Path("/home/user/mcore-1/notebooks/gabor_analysis.ipynb")
+out = pathlib.Path(__file__).with_name("gabor_analysis.ipynb")
 out.write_text(json.dumps(nb, ensure_ascii=False, indent=1))
 print(f"Wrote {out}  ({out.stat().st_size} bytes)")
 
