@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCORE-1 · Game Theory Engine</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#020810; font-family:'Courier New',monospace; color:#88ccff; overflow-x:hidden; min-height:100vh; }
+
+header {
+  padding:18px 28px 0;
+  border-bottom:1px solid #0d1e3d;
+}
+header h1 { font-size:13px; text-transform:uppercase; letter-spacing:3px; color:#446688; margin-bottom:2px; }
+header p  { font-size:10px; color:#223344; letter-spacing:1px; }
+
+#tabs {
+  display:flex; gap:2px; padding:0 28px;
+  border-bottom:1px solid #0d1e3d;
+}
+.tab {
+  background:none; border:none; color:#334455;
+  font-family:inherit; font-size:10px; text-transform:uppercase;
+  letter-spacing:1.5px; padding:12px 18px; cursor:pointer;
+  border-bottom:2px solid transparent; transition:all .2s;
+}
+.tab:hover { color:#668899; }
+.tab.active { color:#66aadd; border-bottom-color:#3366cc; }
+
+.sim { display:none; padding:20px 28px 40px; }
+.sim.active { display:grid; }
+
+/* ── Sim 1: Cascade ── */
+#sim-cascade { grid-template-columns:1fr 280px; gap:28px; }
+#cascadeCanvasWrap {
+  background:#030a18; border:1px solid #0d1e3d;
+  border-radius:6px; position:relative; overflow:hidden;
+}
+#cascadeCanvas { display:block; }
+#cascadeInfo {
+  position:absolute; top:10px; left:10px;
+  font-size:10px; color:#334466; pointer-events:none;
+}
+
+/* ── Sim 2: Population ── */
+#sim-population { grid-template-columns:1fr 300px; gap:28px; }
+#popCanvasWrap {
+  background:#030a18; border:1px solid #0d1e3d;
+  border-radius:6px; overflow:hidden;
+}
+#popCanvas { display:block; }
+
+/* ── Sim 3: Tournament ── */
+#sim-tournament { grid-template-columns:1fr 1fr; gap:28px; }
+#tournamentLeft, #tournamentRight { display:flex; flex-direction:column; gap:16px; }
+
+/* Shared panel style */
+.panel {
+  background:rgba(3,8,24,.88); border:1px solid #0d1e3d;
+  border-radius:6px; padding:14px 16px;
+}
+.panel h3 { font-size:9px; text-transform:uppercase; letter-spacing:2px; color:#334466; margin-bottom:12px; }
+
+.ctrl-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:11px; color:#556677; }
+.ctrl-row label { flex:1; }
+.ctrl-row input[type=range] { flex:2; accent-color:#3366cc; }
+.ctrl-row input[type=checkbox] { accent-color:#3366cc; }
+.ctrl-val { color:#99bbdd; width:32px; text-align:right; font-size:10px; }
+
+button.action {
+  background:#060e24; color:#4488bb; border:1px solid #1a3366;
+  border-radius:4px; padding:6px 14px; font-family:inherit;
+  font-size:10px; text-transform:uppercase; letter-spacing:1px;
+  cursor:pointer; transition:all .2s; margin-right:6px;
+}
+button.action:hover { border-color:#3366cc; color:#88ccff; }
+button.action.primary { color:#22cc88; border-color:#1a5544; }
+button.action.primary:hover { border-color:#22cc88; }
+
+.badge {
+  display:inline-block; width:10px; height:10px; border-radius:50%;
+  margin-right:6px; vertical-align:middle;
+}
+.badge-d  { background:#cc2244; box-shadow:0 0 6px #cc224466; }
+.badge-n  { background:#334466; }
+.badge-c  { background:#22cc66; box-shadow:0 0 6px #22cc6666; }
+
+.matrix-grid {
+  display:grid; grid-template-columns:repeat(4, 1fr);
+  gap:2px; font-size:10px;
+}
+.matrix-grid .mh { color:#ff9944; text-align:center; padding:3px; }
+.matrix-grid .mc {
+  text-align:center; padding:4px 2px;
+  border:1px solid #0d1e3d; border-radius:2px; color:#99ccee;
+}
+
+.score-bar-wrap { display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:10px; }
+.score-bar-wrap span:first-child { width:90px; color:#668899; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.score-bar { flex:1; height:8px; border-radius:4px; background:#0a1428; position:relative; }
+.score-fill { height:100%; border-radius:4px; transition:width .4s; }
+.score-val { width:40px; text-align:right; color:#aaddff; }
+
+.insight { font-size:10px; color:#445566; line-height:1.7; padding:10px; background:#030a18; border-radius:4px; border-left:2px solid #1a3366; }
+.insight b { color:#66aadd; }
+.insight .hi { color:#ffd700; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>MCORE-1 · Game Theory Engine</h1>
+  <p>Ternary strategic dynamics · budget conservation · partial alignment</p>
+</header>
+
+<div id="tabs">
+  <button class="tab active" onclick="showTab('cascade')">I · Defection Cascade</button>
+  <button class="tab" onclick="showTab('population')">II · Trit Population</button>
+  <button class="tab" onclick="showTab('tournament')">III · Strategy Tournament</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SIM 1 · DEFECTION CASCADE
+══════════════════════════════════════════════════════════ -->
+<div id="sim-cascade" class="sim active">
+  <div id="cascadeCanvasWrap">
+    <canvas id="cascadeCanvas"></canvas>
+    <div id="cascadeInfo">
+      Budget: <span id="budgetVal">0</span> &nbsp;|&nbsp;
+      Gen: <span id="genVal">0</span> &nbsp;|&nbsp;
+      D:<span id="dCount" style="color:#cc2244">0</span>
+      N:<span id="nCount" style="color:#557799">0</span>
+      C:<span id="cCount" style="color:#22cc66">0</span>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px;">
+    <div class="panel">
+      <h3>Controls</h3>
+      <div style="margin-bottom:10px;">
+        <button class="action primary" onclick="cascadePlay()">▶ Play</button>
+        <button class="action" onclick="cascadeReset()">↺ Reset</button>
+        <button class="action" onclick="cascadeStep()">⟶ Step</button>
+      </div>
+      <div class="ctrl-row">
+        <label>Speed</label>
+        <input type="range" id="speedSlider" min="1" max="20" value="6">
+        <span class="ctrl-val" id="speedVal">6</span>
+      </div>
+      <div class="ctrl-row">
+        <label>Cascade prob. θ</label>
+        <input type="range" id="thetaSlider" min="1" max="50" value="20">
+        <span class="ctrl-val" id="thetaVal">0.20</span>
+      </div>
+      <div class="ctrl-row">
+        <label>Decay rate</label>
+        <input type="range" id="decaySlider" min="1" max="20" value="4">
+        <span class="ctrl-val" id="decayVal">0.04</span>
+      </div>
+      <div class="ctrl-row">
+        <label><input type="checkbox" id="conservedCheck" checked> Budget conservation</label>
+      </div>
+      <div style="font-size:10px;color:#334455;margin-top:8px;">
+        Click grid to plant defectors (right-click for cooperators)
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Legend</h3>
+      <div style="font-size:11px;line-height:2;">
+        <span class="badge badge-d"></span>Defect &nbsp;(−1 · debt state)<br>
+        <span class="badge badge-n"></span>Neutral (0 · undeclared)<br>
+        <span class="badge badge-c"></span>Cooperate (+1 · surplus)
+      </div>
+    </div>
+
+    <div class="panel insight">
+      <b>Budget conservation</b> (MCORE-1 constraint) requires every defection event to be paired with a cooperation event — debt cannot accumulate without a corresponding surplus.<br><br>
+      Toggle it off to see <span class="hi">unconstrained cascade</span>: defection colonises the entire grid. Toggle on: a <span class="hi">balanced wave pattern</span> emerges with stable undeclared zones — the 0-state is load-bearing.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SIM 2 · TRIT POPULATION DYNAMICS
+══════════════════════════════════════════════════════════ -->
+<div id="sim-population" class="sim">
+  <div id="popCanvasWrap">
+    <canvas id="popCanvas"></canvas>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px;">
+    <div class="panel">
+      <h3>Trit Payoff Matrix A</h3>
+      <div class="matrix-grid" id="matrixDisplay"></div>
+      <div style="font-size:10px;color:#334455;margin-top:8px;">
+        U(p) = p<sup>T</sup>Ap &nbsp;· row = my strategy, col = opponent
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Controls</h3>
+      <div style="margin-bottom:10px;">
+        <button class="action primary" onclick="popLaunchSeveral()">▶ Launch orbits</button>
+        <button class="action" onclick="popClear()">✕ Clear</button>
+      </div>
+      <div class="ctrl-row">
+        <label><input type="checkbox" id="binaryModeCheck"> Binary PD only (C/D edge)</label>
+      </div>
+      <div style="font-size:10px;color:#334455;margin-top:4px;">
+        Click simplex to launch trajectory from that strategy mix
+      </div>
+    </div>
+
+    <div class="panel insight">
+      <b>Trit Prisoner's Dilemma</b> has payoff matrix where N (undeclared) is the best response to D.<br><br>
+      Binary Nash: <span class="hi">(D, D)</span> — pure defection, only stable equilibrium.<br><br>
+      Trit Nash: <span class="hi">(0, ⅓, ⅔)</span> on the N–D edge — <b>one third of the population remains undeclared in the evolutionarily stable state.</b> The 0-state is not a bug; it is the Nash outcome.
+    </div>
+
+    <div class="panel">
+      <h3>Nash Equilibria</h3>
+      <div id="nashList" style="font-size:10px;line-height:1.9;color:#556677;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SIM 3 · STRATEGY TOURNAMENT
+══════════════════════════════════════════════════════════ -->
+<div id="sim-tournament" class="sim">
+  <div id="tournamentLeft">
+    <div class="panel">
+      <h3>Strategies</h3>
+      <div id="strategyList" style="font-size:10px;line-height:1.9;color:#556677;"></div>
+    </div>
+    <div class="panel">
+      <h3>Payoff Matrix (Trit PD)</h3>
+      <div class="matrix-grid" id="tournMatrixDisplay"></div>
+    </div>
+    <div class="panel">
+      <h3>Settings</h3>
+      <div class="ctrl-row">
+        <label>Rounds per match</label>
+        <input type="range" id="roundsSlider" min="5" max="100" value="20">
+        <span class="ctrl-val" id="roundsVal">20</span>
+      </div>
+      <div class="ctrl-row">
+        <label>Population size</label>
+        <input type="range" id="popSlider" min="10" max="200" value="60">
+        <span class="ctrl-val" id="popVal">60</span>
+      </div>
+      <button class="action primary" onclick="runTournament()" style="margin-top:4px;">▶ Run Tournament</button>
+    </div>
+  </div>
+  <div id="tournamentRight">
+    <div class="panel" style="flex:1;">
+      <h3>Score Distribution</h3>
+      <div id="scoreBoard"></div>
+    </div>
+    <div class="panel insight" id="tournInsight">
+      Run the tournament to see which trit strategies dominate. Unlike binary PD where AllD always wins, trit strategies interact non-trivially — the 0-state creates strategic options that don't exist in binary models.
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── Tab navigation ────────────────────────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.sim').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sim-'+name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'population') popDraw();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SIM 1 · DEFECTION CASCADE
+// ══════════════════════════════════════════════════════════════════════════════
+const G = 22; // grid size
+let cells = Array.from({length:G}, () => new Int8Array(G));
+let generation = 0;
+let cascadeTimer = null;
+let cascadePlaying = false;
+
+const CELL_COLORS = {
+  '-1': '#cc2244',  // defect
+   '0': '#0d1e38',  // neutral
+   '1': '#22cc66',  // cooperate
+};
+const GLOW_COLORS = {
+  '-1': 'rgba(204,34,68,0.35)',
+   '1': 'rgba(34,204,102,0.25)',
+};
+
+function cascadeReset() {
+  cells = Array.from({length:G}, () => new Int8Array(G));
+  generation = 0;
+  cascadeRenderFrame();
+  updateCascadeStats();
+}
+
+function cascadePlay() {
+  if (cascadePlaying) {
+    clearInterval(cascadeTimer);
+    cascadePlaying = false;
+    document.querySelector('[onclick="cascadePlay()"]').textContent = '▶ Play';
+  } else {
+    cascadePlaying = true;
+    document.querySelector('[onclick="cascadePlay()"]').textContent = '⏸ Pause';
+    const speed = parseInt(document.getElementById('speedSlider').value);
+    cascadeTimer = setInterval(cascadeStepMany, Math.max(16, 180/speed));
+  }
+}
+
+function cascadeStepMany() {
+  for (let k = 0; k < 2; k++) cascadeStep();
+}
+
+function cascadeStep() {
+  const theta = parseInt(document.getElementById('thetaSlider').value) / 100;
+  const decay  = parseInt(document.getElementById('decaySlider').value) / 100;
+  const conserved = document.getElementById('conservedCheck').checked;
+
+  const defections = [], cooperations = [];
+
+  // Collect all events
+  for (let i = 0; i < G; i++) {
+    for (let j = 0; j < G; j++) {
+      const t = cells[i][j];
+      // Decay to neutral
+      if (t !== 0 && Math.random() < decay) {
+        cells[i][j] = 0;
+        continue;
+      }
+      // Cascade: try to affect one neutral neighbor
+      if (t === -1 || t === 1) {
+        const ns = shuffledNeighbors(i,j);
+        for (const [ni,nj] of ns) {
+          if (cells[ni][nj] === 0 && Math.random() < theta) {
+            if (t === -1) defections.push([ni,nj]);
+            else cooperations.push([ni,nj]);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  if (conserved) {
+    // Must pair defections with cooperations to maintain budget
+    const n = Math.min(defections.length, cooperations.length);
+    for (let k = 0; k < n; k++) {
+      const [di,dj] = defections[k];
+      const [ci,cj] = cooperations[k];
+      cells[di][dj] = -1;
+      cells[ci][cj] =  1;
+    }
+    // Unpaired defections: must force a compensating cooperation somewhere
+    for (let k = n; k < defections.length; k++) {
+      const [di,dj] = defections[k];
+      cells[di][dj] = -1;
+      // Find a random neutral cell and force it to cooperate (conservation law)
+      const neutral = findRandomNeutral();
+      if (neutral) cells[neutral[0]][neutral[1]] = 1;
+    }
+  } else {
+    // Unconstrained: apply all events freely
+    defections.forEach(([i,j]) => { cells[i][j] = -1; });
+    cooperations.forEach(([i,j]) => { cells[i][j] = 1; });
+  }
+
+  // Spontaneous defection (strategic temptation)
+  if (Math.random() < 0.005) {
+    const neutral = findRandomNeutral();
+    if (neutral) {
+      cells[neutral[0]][neutral[1]] = -1;
+      if (conserved) {
+        const c = findRandomNeutral();
+        if (c) cells[c[0]][c[1]] = 1;
+      }
+    }
+  }
+
+  generation++;
+  cascadeRenderFrame();
+  updateCascadeStats();
+}
+
+function findRandomNeutral() {
+  const candidates = [];
+  for (let i = 0; i < G; i++)
+    for (let j = 0; j < G; j++)
+      if (cells[i][j] === 0) candidates.push([i,j]);
+  if (!candidates.length) return null;
+  return candidates[Math.floor(Math.random()*candidates.length)];
+}
+
+function shuffledNeighbors(i,j) {
+  const ns = [];
+  if (i>0)   ns.push([i-1,j]);
+  if (i<G-1) ns.push([i+1,j]);
+  if (j>0)   ns.push([i,j-1]);
+  if (j<G-1) ns.push([i,j+1]);
+  for (let k=ns.length-1;k>0;k--) {
+    const r = Math.floor(Math.random()*(k+1));
+    [ns[k],ns[r]] = [ns[r],ns[k]];
+  }
+  return ns;
+}
+
+function updateCascadeStats() {
+  let d=0,n=0,c=0,b=0;
+  for (let i=0;i<G;i++) for (let j=0;j<G;j++) {
+    const t = cells[i][j];
+    if (t===-1) d++;
+    else if (t===0) n++;
+    else c++;
+    b += t;
+  }
+  document.getElementById('budgetVal').textContent = b;
+  document.getElementById('genVal').textContent = generation;
+  document.getElementById('dCount').textContent = d;
+  document.getElementById('nCount').textContent = n;
+  document.getElementById('cCount').textContent = c;
+}
+
+// ── Cascade rendering ─────────────────────────────────────────────────────────
+let cascCtx;
+function cascadeRenderFrame() {
+  if (!cascCtx) return;
+  const canvas = cascCtx.canvas;
+  const W = canvas.width, H = canvas.height;
+  const cw = W/G, ch = H/G;
+  cascCtx.fillStyle = '#020810';
+  cascCtx.fillRect(0,0,W,H);
+
+  for (let i=0;i<G;i++) {
+    for (let j=0;j<G;j++) {
+      const t = cells[i][j];
+      const x = j*cw, y = i*ch;
+      if (t !== 0) {
+        const col = CELL_COLORS[t];
+        const glow = GLOW_COLORS[t];
+        // Glow
+        const grad = cascCtx.createRadialGradient(x+cw/2,y+ch/2,0,x+cw/2,y+ch/2,cw*0.9);
+        grad.addColorStop(0, glow);
+        grad.addColorStop(1, 'transparent');
+        cascCtx.fillStyle = grad;
+        cascCtx.fillRect(x,y,cw,ch);
+        // Cell
+        cascCtx.fillStyle = col;
+        const margin = cw * 0.18;
+        cascCtx.fillRect(x+margin, y+margin, cw-margin*2, ch-margin*2);
+      } else {
+        // Neutral cell - dark
+        cascCtx.fillStyle = '#060f20';
+        const margin = cw * 0.3;
+        cascCtx.fillRect(x+margin, y+margin, cw-margin*2, ch-margin*2);
+      }
+    }
+  }
+  // Grid lines
+  cascCtx.strokeStyle = '#020810';
+  cascCtx.lineWidth = 1;
+  for (let i=0;i<=G;i++) {
+    cascCtx.beginPath();
+    cascCtx.moveTo(i*cw,0); cascCtx.lineTo(i*cw,H);
+    cascCtx.stroke();
+    cascCtx.beginPath();
+    cascCtx.moveTo(0,i*ch); cascCtx.lineTo(W,i*ch);
+    cascCtx.stroke();
+  }
+}
+
+function initCascadeCanvas() {
+  const wrap = document.getElementById('cascadeCanvasWrap');
+  const canvas = document.getElementById('cascadeCanvas');
+  const W = wrap.clientWidth || 600;
+  const H = Math.min(W, window.innerHeight-200);
+  canvas.width = W; canvas.height = H;
+  cascCtx = canvas.getContext('2d');
+  cascadeRenderFrame();
+
+  // Click to plant
+  canvas.addEventListener('mousedown', e => {
+    const rect = canvas.getBoundingClientRect();
+    const cx = Math.floor((e.clientX-rect.left)/canvas.width*G);
+    const cy = Math.floor((e.clientY-rect.top)/canvas.height*G);
+    if (cx>=0&&cx<G&&cy>=0&&cy<G) {
+      if (e.button === 2) {
+        cells[cy][cx] = 1;
+      } else {
+        cells[cy][cx] = -1;
+        if (document.getElementById('conservedCheck').checked) {
+          const n = findRandomNeutral();
+          if (n) cells[n[0]][n[1]] = 1;
+        }
+      }
+      cascadeRenderFrame();
+      updateCascadeStats();
+    }
+  });
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+// Sliders
+document.getElementById('speedSlider').addEventListener('input', function() {
+  document.getElementById('speedVal').textContent = this.value;
+  if (cascadePlaying) { cascadePlay(); cascadePlay(); }
+});
+document.getElementById('thetaSlider').addEventListener('input', function() {
+  document.getElementById('thetaVal').textContent = (this.value/100).toFixed(2);
+});
+document.getElementById('decaySlider').addEventListener('input', function() {
+  document.getElementById('decayVal').textContent = (this.value/100).toFixed(2);
+});
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SIM 2 · TRIT POPULATION DYNAMICS
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Strategies: C(+1) = idx 0, N(0) = idx 1, D(-1) = idx 2
+// Payoff matrix: A[i][j] = payoff for playing i against j
+// N is best response to D → creates stable (0, 1/3, 2/3) Nash on N-D edge
+const POP_A = [
+  [3,   1.5, -1 ],   // C vs {C, N, D}
+  [1.5, 1,   0.5],   // N vs {C, N, D}
+  [5,   2,   0  ]    // D vs {C, N, D}
+];
+
+// Simplex vertices (canvas 2D coordinates; triangle equilateral)
+let popCtx, PW, PH;
+let popV1, popV2, popV3; // barycentric positions in canvas
+
+let popTrajectories = [];
+let popAnimTimer = null;
+
+function initPopCanvas() {
+  const wrap = document.getElementById('popCanvasWrap');
+  const canvas = document.getElementById('popCanvas');
+  PW = wrap.clientWidth || 560;
+  PH = Math.min(PW * 0.88, window.innerHeight-200);
+  canvas.width = PW; canvas.height = PH;
+  popCtx = canvas.getContext('2d');
+
+  const margin = 60;
+  const cx = PW/2, cy = PH/2;
+  const r = Math.min(PW,PH)/2 - margin;
+  popV1 = {x: cx,          y: cy - r * 0.92};     // C (+1) — top
+  popV2 = {x: cx - r*0.87, y: cy + r * 0.50};     // N (0) — bottom-left
+  popV3 = {x: cx + r*0.87, y: cy + r * 0.50};     // D (-1) — bottom-right
+
+  canvas.addEventListener('click', e => {
+    const rect = canvas.getBoundingClientRect();
+    const px = e.clientX-rect.left;
+    const py = e.clientY-rect.top;
+    const b = canvasPt2bary(px, py);
+    if (b) popLaunchFrom(b, '#ff6622');
+  });
+}
+
+function popBary2canvas(p1, p2, p3) {
+  return {
+    x: p1*popV1.x + p2*popV2.x + p3*popV3.x,
+    y: p1*popV1.y + p2*popV2.y + p3*popV3.y
+  };
+}
+
+function canvasPt2bary(px, py) {
+  const u = {x:popV2.x-popV1.x, y:popV2.y-popV1.y};
+  const v = {x:popV3.x-popV1.x, y:popV3.y-popV1.y};
+  const w = {x:px-popV1.x,      y:py-popV1.y};
+  const d = u.x*v.y - u.y*v.x;
+  const s = (w.x*v.y - w.y*v.x)/d;
+  const t = (u.x*w.y - u.y*w.x)/d;
+  const r = 1-s-t;
+  if (r<-0.02||s<-0.02||t<-0.02) return null;
+  return [Math.max(0,r), Math.max(0,s), Math.max(0,t)];
+}
+
+function popPayoff(p, A) {
+  const Ap = matVec(A,p);
+  return p[0]*Ap[0]+p[1]*Ap[1]+p[2]*Ap[2];
+}
+
+function matVec(A, p) {
+  return [
+    A[0][0]*p[0]+A[0][1]*p[1]+A[0][2]*p[2],
+    A[1][0]*p[0]+A[1][1]*p[1]+A[1][2]*p[2],
+    A[2][0]*p[0]+A[2][1]*p[1]+A[2][2]*p[2]
+  ];
+}
+
+function replicator(p, A) {
+  const Ap = matVec(A,p);
+  const mean = p[0]*Ap[0]+p[1]*Ap[1]+p[2]*Ap[2];
+  return [p[0]*(Ap[0]-mean), p[1]*(Ap[1]-mean), p[2]*(Ap[2]-mean)];
+}
+
+function clampP(p) {
+  const q = p.map(x=>Math.max(0,x));
+  const s = q[0]+q[1]+q[2];
+  return s<1e-12?[1/3,1/3,1/3]:q.map(x=>x/s);
+}
+
+function rk4pop(p,A,dt){
+  const k1=replicator(p,A);
+  const p2=clampP(p.map((x,i)=>x+dt/2*k1[i]));
+  const k2=replicator(p2,A);
+  const p3=clampP(p.map((x,i)=>x+dt/2*k2[i]));
+  const k3=replicator(p3,A);
+  const p4=clampP(p.map((x,i)=>x+dt*k3[i]));
+  const k4=replicator(p4,A);
+  return clampP(p.map((x,i)=>x+dt/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i])));
+}
+
+function popIntegrate(p0, A, dt, steps){
+  const pts=[p0.slice()]; let p=p0.slice();
+  for(let i=0;i<steps;i++){ p=rk4pop(p,A,dt); pts.push(p.slice()); }
+  return pts;
+}
+
+const TRAJ_PALETTE = ['#ff6622','#ff22aa','#22ddff','#aaff44','#ffdd00','#aa44ff','#ff8866','#66ffcc'];
+let trajIdx = 0;
+
+function popLaunchFrom(b, color) {
+  const col = color || TRAJ_PALETTE[trajIdx++ % TRAJ_PALETTE.length];
+  const binaryMode = document.getElementById('binaryModeCheck').checked;
+  // In binary mode: project to C-D edge (ignore N)
+  let p0 = b.slice();
+  if (binaryMode) { const s=p0[0]+p0[2]; p0=[p0[0]/s||0, 0, p0[2]/s||0]; }
+
+  const pts = popIntegrate(p0, POP_A, 0.04, 400);
+  popTrajectories.push({pts, color:col, startTime:Date.now(), duration:5, lastN:0});
+  if (popTrajectories.length > 10) popTrajectories.shift();
+  if (!popAnimTimer) popAnimTimer = setInterval(popAnimFrame, 30);
+}
+
+function popLaunchSeveral() {
+  const seeds = [
+    [0.7,0.2,0.1],[0.1,0.7,0.2],[0.2,0.1,0.7],
+    [0.5,0.4,0.1],[0.1,0.4,0.5],[0.4,0.1,0.5],
+    [0.33,0.33,0.34]
+  ];
+  popClear();
+  seeds.forEach(s => popLaunchFrom(s));
+}
+
+function popClear() {
+  popTrajectories = [];
+  if (popAnimTimer) { clearInterval(popAnimTimer); popAnimTimer = null; }
+  popDraw();
+}
+
+function popAnimFrame() {
+  let anyGrowing = false;
+  popTrajectories.forEach(tr => {
+    const frac = Math.min((Date.now()-tr.startTime)/1000/tr.duration, 1);
+    const nShow = Math.max(2, Math.floor(frac*tr.pts.length));
+    if (nShow !== tr.lastN) { tr.lastN = nShow; anyGrowing = true; }
+  });
+  if (anyGrowing) popDraw();
+  else { clearInterval(popAnimTimer); popAnimTimer = null; }
+}
+
+function payoffColor2D(u, uMin, uMax) {
+  const t = uMax>uMin ? Math.max(0,Math.min(1,(u-uMin)/(uMax-uMin))) : 0.5;
+  const h = (1-t)*0.67;
+  // Convert HSL to RGB
+  const c = (1-Math.abs(2*0.4-1))*0.85;
+  const x = c*(1-Math.abs((h*6)%2-1));
+  const m = 0.4-c/2;
+  let r,g,b;
+  const H6=h*6;
+  if      (H6<1){r=c;g=x;b=0}
+  else if (H6<2){r=x;g=c;b=0}
+  else if (H6<3){r=0;g=c;b=x}
+  else if (H6<4){r=0;g=x;b=c}
+  else if (H6<5){r=x;g=0;b=c}
+  else           {r=c;g=0;b=x}
+  const ir=Math.round((r+m)*255),ig=Math.round((g+m)*255),ib=Math.round((b+m)*255);
+  return `rgb(${ir},${ig},${ib})`;
+}
+
+function popDraw() {
+  if (!popCtx) return;
+  const ctx = popCtx;
+  ctx.fillStyle='#020810'; ctx.fillRect(0,0,PW,PH);
+
+  const binaryMode = document.getElementById('binaryModeCheck')?.checked;
+
+  // ── Draw colored simplex mesh ──────────────────────────────────────────────
+  const N=40;
+  const A=POP_A;
+  // Compute payoff range
+  let uMin=Infinity,uMax=-Infinity;
+  for(let i=0;i<=N;i++) for(let j=0;j<=N-i;j++){
+    const p=[i/N,j/N,(N-i-j)/N];
+    const u=popPayoff(p,A);
+    if(u<uMin)uMin=u; if(u>uMax)uMax=u;
+  }
+
+  // Draw filled triangles
+  for(let i=0;i<N;i++){
+    for(let j=0;j<N-i;j++){
+      const p0=[i/N,j/N,(N-i-j)/N];
+      const p1=[(i+1)/N,j/N,(N-i-j-1)/N];
+      const p2=[i/N,(j+1)/N,(N-i-j-1)/N];
+      drawFilledTri(ctx,[p0,p1,p2],A,uMin,uMax,binaryMode);
+      if(j+1<N-i){
+        const p3=[(i+1)/N,(j+1)/N,(N-i-j-2)/N];
+        drawFilledTri(ctx,[p1,p3,p2],A,uMin,uMax,binaryMode);
+      }
+    }
+  }
+
+  // ── Grid lines ────────────────────────────────────────────────────────────
+  const M=6;
+  ctx.strokeStyle='rgba(20,40,80,0.5)'; ctx.lineWidth=0.8;
+  for(let k=1;k<M;k++){
+    const t=k/M;
+    // iso lines for each barycentric coordinate
+    [[t,0,1-t],[t,1-t,0],[0,t,1-t],[1-t,t,0],[0,1-t,t],[1-t,0,t]].forEach((a,idx)=>{
+      if(idx%2===0){
+        const pa=popBary2canvas(a[0],a[1],a[2]);
+        const bary2=[a[0]===t?t:(a[1]===t?0:1-t), a[0]===t?(1-t):(a[1]===t?t:0), a[0]===t?0:(a[1]===t?1-t:t)];
+        // just draw the 3 families
+      }
+    });
+    // iso-p1
+    const A1=popBary2canvas(t,0,1-t),B1=popBary2canvas(t,1-t,0);
+    ctx.beginPath();ctx.moveTo(A1.x,A1.y);ctx.lineTo(B1.x,B1.y);ctx.stroke();
+    // iso-p2
+    const A2=popBary2canvas(0,t,1-t),B2=popBary2canvas(1-t,t,0);
+    ctx.beginPath();ctx.moveTo(A2.x,A2.y);ctx.lineTo(B2.x,B2.y);ctx.stroke();
+    // iso-p3
+    const A3=popBary2canvas(1-t,0,t),B3=popBary2canvas(0,1-t,t);
+    ctx.beginPath();ctx.moveTo(A3.x,A3.y);ctx.lineTo(B3.x,B3.y);ctx.stroke();
+  }
+
+  // ── Outer border ──────────────────────────────────────────────────────────
+  ctx.strokeStyle='#2255aa'; ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.moveTo(popV1.x,popV1.y); ctx.lineTo(popV2.x,popV2.y);
+  ctx.lineTo(popV3.x,popV3.y); ctx.closePath(); ctx.stroke();
+
+  // ── Binary mode overlay: fade non-edge region ─────────────────────────────
+  if (binaryMode) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(popV1.x,popV1.y);ctx.lineTo(popV2.x,popV2.y);ctx.lineTo(popV3.x,popV3.y);ctx.closePath();
+    ctx.fillStyle='rgba(2,8,16,0.70)';ctx.fill();
+    // Keep C-D edge visible
+    ctx.restore();
+    ctx.strokeStyle='#3366cc';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(popV1.x,popV1.y);ctx.lineTo(popV3.x,popV3.y);ctx.stroke();
+  }
+
+  // ── Flow arrows ───────────────────────────────────────────────────────────
+  const AM=12;
+  for(let i=1;i<AM;i++) for(let j=1;j<AM-i;j++){
+    const p=[i/AM,j/AM,1-i/AM-j/AM];
+    if(p[2]<0.03) continue;
+    if(binaryMode && p[1]>0.05) continue;
+    const dp=replicator(p,A);
+    const speed=Math.sqrt(dp[0]**2+dp[1]**2+dp[2]**2);
+    if(speed<0.004) continue;
+    const pt=popBary2canvas(p[0],p[1],p[2]);
+    const dt2={
+      x:dp[0]*(popV1.x-popBary2canvas(0,0.5,0.5).x)+dp[1]*(popV2.x-popBary2canvas(0.5,0,0.5).x)+dp[2]*(popV3.x-popBary2canvas(0.5,0.5,0).x),
+      y:dp[0]*(popV1.y-popBary2canvas(0,0.5,0.5).y)+dp[1]*(popV2.y-popBary2canvas(0.5,0,0.5).y)+dp[2]*(popV3.y-popBary2canvas(0.5,0.5,0).y)
+    };
+    const dlen=Math.sqrt(dt2.x**2+dt2.y**2);
+    if(dlen<0.001) continue;
+
+    const dpCanvas={x:dp[0]*popV1.x+dp[1]*popV2.x+dp[2]*popV3.x-popBary2canvas(dp[0]/(dp[0]+dp[1]+dp[2]||1),dp[1]/(dp[0]+dp[1]+dp[2]||1),dp[2]/(dp[0]+dp[1]+dp[2]||1)).x, y:0};
+    // Simpler: just use the vector from popBary2canvas(p+dp) - popBary2canvas(p)
+    const eps=0.01/speed;
+    const pdp=clampP([p[0]+dp[0]*eps,p[1]+dp[1]*eps,p[2]+dp[2]*eps]);
+    const pt2=popBary2canvas(pdp[0],pdp[1],pdp[2]);
+    const vx=pt2.x-pt.x, vy=pt2.y-pt.y;
+    const vlen=Math.sqrt(vx*vx+vy*vy);
+    if(vlen<0.1) continue;
+
+    const arrowLen=Math.min(speed*2.5,14);
+    const ax=vx/vlen*arrowLen, ay=vy/vlen*arrowLen;
+    const col=`hsl(${150-speed*120},80%,50%)`;
+    ctx.strokeStyle=col; ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pt.x,pt.y);ctx.lineTo(pt.x+ax,pt.y+ay);ctx.stroke();
+    // Arrowhead
+    const angle=Math.atan2(ay,ax);
+    const hs=4;
+    ctx.fillStyle=col;
+    ctx.beginPath();
+    ctx.moveTo(pt.x+ax,pt.y+ay);
+    ctx.lineTo(pt.x+ax-hs*Math.cos(angle-0.4),pt.y+ay-hs*Math.sin(angle-0.4));
+    ctx.lineTo(pt.x+ax-hs*Math.cos(angle+0.4),pt.y+ay-hs*Math.sin(angle+0.4));
+    ctx.closePath();ctx.fill();
+  }
+
+  // ── Trajectories ──────────────────────────────────────────────────────────
+  popTrajectories.forEach(tr => {
+    if(tr.lastN<2) return;
+    const pts=tr.pts.slice(0,tr.lastN);
+    ctx.strokeStyle=tr.color; ctx.lineWidth=1.8;
+    ctx.shadowColor=tr.color; ctx.shadowBlur=6;
+    ctx.beginPath();
+    const start=popBary2canvas(pts[0][0],pts[0][1],pts[0][2]);
+    ctx.moveTo(start.x,start.y);
+    for(let k=1;k<pts.length;k++){
+      const cp=popBary2canvas(pts[k][0],pts[k][1],pts[k][2]);
+      ctx.lineTo(cp.x,cp.y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur=0;
+    // Dot at current end
+    const last=popBary2canvas(pts[pts.length-1][0],pts[pts.length-1][1],pts[pts.length-1][2]);
+    ctx.fillStyle=tr.color;
+    ctx.beginPath();ctx.arc(last.x,last.y,3.5,0,Math.PI*2);ctx.fill();
+  });
+
+  // ── Nash equilibria ────────────────────────────────────────────────────────
+  const nashPoints = [
+    {p:[0, 1/3, 2/3], label:'★ Nash (0, ⅓, ⅔)', stable:true},
+    {p:[0, 0, 1],     label:'D-vertex (unstable)',  stable:false},
+    {p:[0, 1, 0],     label:'N-vertex (unstable)',  stable:false},
+    {p:[1, 0, 0],     label:'C-vertex (unstable)',  stable:false},
+  ];
+  nashPoints.forEach(({p,label,stable}) => {
+    if(binaryMode && p[1]>0.01) return;
+    const pt=popBary2canvas(p[0],p[1],p[2]);
+    const t=Date.now()/800;
+    const r=stable?6+Math.sin(t)*2:4;
+    ctx.shadowColor=stable?'#ffd700':'#334466';
+    ctx.shadowBlur=stable?12:4;
+    ctx.fillStyle=stable?'#ffd700':'#334466';
+    ctx.beginPath();ctx.arc(pt.x,pt.y,r,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.fillStyle=stable?'#ffd700':'#446688';
+    ctx.font=`${stable?10:9}px Courier New`;
+    ctx.textAlign='center';
+    ctx.fillText(label,pt.x,pt.y-(r+7));
+  });
+
+  // ── Vertex labels ──────────────────────────────────────────────────────────
+  const labels=[
+    {p:popV1, text:'C (+1)\nCooperate', col:'#22cc66'},
+    {p:popV2, text:'N (0)\nUndeclared', col:'#668899'},
+    {p:popV3, text:'D (−1)\nDefect',    col:'#cc2244'},
+  ];
+  labels.forEach(({p,text,col})=>{
+    ctx.fillStyle=col; ctx.font='bold 11px Courier New'; ctx.textAlign='center';
+    const lines=text.split('\n');
+    lines.forEach((l,i)=>{
+      const dy = p===popV1 ? -18-i*14 : (p===popV2 ? 18+i*14 : 18+i*14);
+      ctx.fillText(l,p.x,p.y+dy);
+    });
+  });
+}
+
+function drawFilledTri(ctx, ps, A, uMin, uMax, binaryMode) {
+  const pts=ps.map(p=>popBary2canvas(p[0],p[1],p[2]));
+  const u=ps.map(p=>popPayoff(p,A));
+  const uAvg=(u[0]+u[1]+u[2])/3;
+  let alpha = 0.88;
+  if (binaryMode) {
+    // Fade cells far from C-D edge (p1 near 0, p2 near 0)
+    const avgN = (ps[0][1]+ps[1][1]+ps[2][1])/3;
+    alpha = Math.max(0, 0.15 - avgN*0.5);
+  }
+  ctx.globalAlpha=alpha;
+  ctx.fillStyle=payoffColor2D(uAvg,uMin,uMax);
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x,pts[0].y);
+  ctx.lineTo(pts[1].x,pts[1].y);
+  ctx.lineTo(pts[2].x,pts[2].y);
+  ctx.closePath();ctx.fill();
+  ctx.globalAlpha=1;
+}
+
+function buildMatrixDisplay(containerId) {
+  const A=POP_A;
+  const labels=['C','N','D'];
+  let html='<div class="mh"></div>';
+  labels.forEach(l=>{ html+=`<div class="mh">${l}</div>`; });
+  labels.forEach((rl,i)=>{
+    html+=`<div class="mh">${rl}</div>`;
+    A[i].forEach(v=>{ html+=`<div class="mc">${v%1===0?v:v.toFixed(1)}</div>`; });
+  });
+  document.getElementById(containerId).innerHTML=html;
+}
+
+function buildNashList() {
+  document.getElementById('nashList').innerHTML=`
+    <span style="color:#ffd700">★ Stable Nash:</span> (p_C=0, p_N=⅓, p_D=⅔)<br>
+    <span style="color:#334466">▸ Unstable:</span> C, N, D vertices<br>
+    <br>
+    Binary PD Nash: <span style="color:#cc6644">(D,D) only</span><br>
+    Trit PD Nash: <span style="color:#ffd700">N persists at ⅓</span>
+  `;
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SIM 3 · STRATEGY TOURNAMENT
+// ══════════════════════════════════════════════════════════════════════════════
+
+const STRATS = [
+  {
+    name:'AllC',
+    label:'Always Cooperate',
+    color:'#22cc66',
+    desc:'Plays +1 every round regardless of opponent.',
+    fn: () => 1
+  },
+  {
+    name:'AllN',
+    label:'Always Neutral',
+    color:'#668899',
+    desc:'Stays at 0 (undeclared) every round.',
+    fn: () => 0
+  },
+  {
+    name:'AllD',
+    label:'Always Defect',
+    color:'#cc2244',
+    desc:'Plays −1 every round.',
+    fn: () => -1
+  },
+  {
+    name:'TritTFT',
+    label:'Trit Tit-for-Tat',
+    color:'#4488ff',
+    desc:'Starts at +1. Copies opponent\'s last trit exactly.',
+    fn: (myHist, oppHist) => oppHist.length ? oppHist[oppHist.length-1] : 1
+  },
+  {
+    name:'Grim0',
+    label:'Grim Neutral',
+    color:'#aa44ff',
+    desc:'Starts cooperating. Switches to 0 (undeclared) permanently if opponent defects.',
+    fn: (myHist, oppHist) => {
+      const triggered = oppHist.some(x => x === -1);
+      return triggered ? 0 : 1;
+    }
+  },
+  {
+    name:'Reactive',
+    label:'Reactive',
+    color:'#ffaa22',
+    desc:'Averages opponent\'s history. Plays the sign of that average (+1/0/−1).',
+    fn: (myHist, oppHist) => {
+      if (!oppHist.length) return 1;
+      const avg = oppHist.reduce((a,b)=>a+b,0)/oppHist.length;
+      return avg > 0.15 ? 1 : avg < -0.15 ? -1 : 0;
+    }
+  },
+  {
+    name:'Pavlov0',
+    label:'Trit Pavlov',
+    color:'#ff4488',
+    desc:'Win-stay, lose-shift. Repeats last move if payoff was good, otherwise shifts one trit.',
+    fn: (myHist, oppHist, myPayoffs) => {
+      if (!myHist.length) return 1;
+      const lastPay = myPayoffs[myPayoffs.length-1];
+      const lastMove = myHist[myHist.length-1];
+      if (lastPay >= 2) return lastMove; // win-stay
+      return Math.max(-1, lastMove - 1); // lose-shift toward D
+    }
+  },
+  {
+    name:'Randomist',
+    label:'Random Trit',
+    color:'#888888',
+    desc:'Uniform random choice from {−1, 0, +1} each round.',
+    fn: () => [-1,0,1][Math.floor(Math.random()*3)]
+  }
+];
+
+function playMatch(stratA, stratB, rounds) {
+  const A = POP_A;
+  let scoreA=0, scoreB=0;
+  const histA=[], histB=[], payA=[], payB=[];
+  for(let r=0;r<rounds;r++){
+    const a=stratA.fn(histA,histB,payA);
+    const b=stratB.fn(histB,histA,payB);
+    const pa=A[a+1][b+1]; // a,b ∈ {-1,0,1}, index by a+1
+    const pb=A[b+1][a+1];
+    scoreA+=pa; scoreB+=pb;
+    histA.push(a); histB.push(b);
+    payA.push(pa); payB.push(pb);
+  }
+  return {scoreA,scoreB};
+}
+
+function runTournament() {
+  const rounds=parseInt(document.getElementById('roundsSlider').value);
+  const popSize=parseInt(document.getElementById('popSlider').value);
+
+  // Round-robin: each pair plays
+  const scores=STRATS.map(()=>0);
+  const matchCount=STRATS.map(()=>0);
+
+  for(let i=0;i<STRATS.length;i++){
+    for(let j=i;j<STRATS.length;j++){
+      const {scoreA,scoreB}=playMatch(STRATS[i],STRATS[j],rounds);
+      scores[i]+=scoreA/rounds;
+      scores[j]+=scoreB/rounds;
+      matchCount[i]++;
+      if(i!==j) matchCount[j]++;
+    }
+  }
+
+  const avgScores=scores.map((s,i)=>s/matchCount[i]);
+  const maxScore=Math.max(...avgScores);
+
+  let html='';
+  const sorted=[...STRATS.map((s,i)=>({...s,score:avgScores[i],rank:i}))]
+    .sort((a,b)=>b.score-a.score);
+
+  sorted.forEach(({name,label,color,score})=>{
+    const pct=Math.round(score/maxScore*100);
+    html+=`<div class="score-bar-wrap">
+      <span>${label}</span>
+      <div class="score-bar">
+        <div class="score-fill" style="width:${pct}%;background:${color};opacity:0.8;"></div>
+      </div>
+      <span class="score-val">${score.toFixed(2)}</span>
+    </div>`;
+  });
+  document.getElementById('scoreBoard').innerHTML=html;
+
+  // Insight
+  const winner=sorted[0];
+  const loser=sorted[sorted.length-1];
+  const allD=sorted.find(s=>s.name==='AllD');
+  const allN=sorted.find(s=>s.name==='AllN');
+  document.getElementById('tournInsight').innerHTML=`
+    <b>Winner: ${winner.label}</b> (${winner.score.toFixed(2)} avg payoff)<br>
+    Last place: ${loser.label} (${loser.score.toFixed(2)})<br><br>
+    ${allD&&allN&&allN.score>allD.score?
+      `<span class="hi">AllN outperforms AllD</span> — undeclared is not passive; it avoids mutual defection loss (${allD.score.toFixed(2)}) while preserving partial benefit.` :
+      `AllD gets ${allD?allD.score.toFixed(2):'?'} · AllN gets ${allN?allN.score.toFixed(2):'?'} — strategy mix matters.<br>`}
+    <br>In binary PD, AllD always wins round-robins. In trit PD, the <span class="hi">0-state creates strategic options</span> that prevent pure defection dominance.
+  `;
+}
+
+// Slider display
+document.getElementById('roundsSlider').addEventListener('input',function(){
+  document.getElementById('roundsVal').textContent=this.value;
+});
+document.getElementById('popSlider').addEventListener('input',function(){
+  document.getElementById('popVal').textContent=this.value;
+});
+
+// Build strategy list
+document.getElementById('strategyList').innerHTML = STRATS.map(s=>`
+  <div style="margin-bottom:8px;">
+    <span style="color:${s.color};font-weight:bold;">${s.name}</span>
+    <span style="color:#334455"> · ${s.label}</span><br>
+    <span style="color:#223344;font-size:9px;">${s.desc}</span>
+  </div>
+`).join('');
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  initCascadeCanvas();
+  initPopCanvas();
+  buildMatrixDisplay('matrixDisplay');
+  buildMatrixDisplay('tournMatrixDisplay');
+  buildNashList();
+  updateCascadeStats();
+
+  // Seed cascade with a few defectors to start
+  cells[G>>1][G>>1] = -1;
+  cells[(G>>1)+1][(G>>1)-1] = -1;
+  if(document.getElementById('conservedCheck').checked){
+    cells[2][2]=1; cells[G-3][G-3]=1;
+  }
+  cascadeRenderFrame();
+  updateCascadeStats();
+});
+
+window.addEventListener('resize', () => {
+  initCascadeCanvas();
+  cascadeReset();
+  initPopCanvas();
+  popDraw();
+});
+</script>
+</body>
+</html>
