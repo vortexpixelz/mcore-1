@@ -11,6 +11,7 @@ Usage:
     mcore encode <pattern>          Encode pattern as Base64-TME
     mcore decode <stream>           Decode Base64-TME stream
     mcore scansion <pattern>        Render plain-text scansion
+    mcore lint <text>               Score text with MCORE-1 lint engine
     mcore info                      Show library version and conformance level
 """
 
@@ -30,6 +31,7 @@ from mcore_py.tme6 import Opcode, encode_tme6, opcodes_to_ints
 from mcore_py.base64tme import to_base64tme, from_base64tme, annotate_stream
 from mcore_py.mss import parse_mss, parse_mss_to_units, emit_mss
 from mcore_py.renderers.terminal import render_scansion, render_line_flat
+from mcore_py.lint import LintConfig, lint_score, decide
 
 
 # ---------------------------------------------------------------------------
@@ -174,6 +176,47 @@ def cmd_scansion(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_lint(args: argparse.Namespace) -> int:
+    """Score text with the MCORE-1 lint engine."""
+    cfg = LintConfig(
+        T_low=args.t_low,
+        T_high=args.t_high,
+    )
+    text = args.text
+    R = lint_score(text, cfg)
+    action = decide(R, cfg)
+
+    if args.json:
+        result = check_tree(
+            __import__('mcore_py.lint', fromlist=['_text_to_constituent'])
+            ._text_to_constituent(text)
+            or __import__('mcore_py.model', fromlist=['Constituent'])
+            .Constituent(
+                parent=__import__('mcore_py.model', fromlist=['ProsodicUnit'])
+                .ProsodicUnit(),
+                children=[]
+            )
+        )
+        print(json.dumps({
+            "score": round(R, 4),
+            "action": action,
+            "valid": result.valid,
+            "errors": len(result.errors),
+            "nodes_checked": result.nodes_checked,
+        }))
+    else:
+        bar_len = 30
+        filled = round(R * bar_len)
+        bar = "█" * filled + "░" * (bar_len - filled)
+        action_emoji = {"no": "✅", "maybe": "⚠️ ", "yes": "🔄"}
+        print(f"MCORE LINT")
+        print(f"  Score  : {R:.4f}  [{bar}]")
+        print(f"  Action : {action_emoji.get(action, '')} {action.upper()}")
+        print(f"  T_low={cfg.T_low}  T_high={cfg.T_high}")
+
+    return 0 if action == "no" else 1
+
+
 def cmd_info(_args: argparse.Namespace) -> int:
     """Show library info."""
     import mcore_py
@@ -185,6 +228,7 @@ def cmd_info(_args: argparse.Namespace) -> int:
     print("  Level 2 (Encoding):   ✓  TME-6, Base64-TME, MSS parsing")
     print("  Level 3 (Generation): ✓  completion + QuantitativeMetrics overlay")
     print("  Level 4 (Full):       ◐  terminal renderer + token stream (audio TBD)")
+    print("  Lint Engine:          ✓  lint_score, decide, tweet_engine")
     return 0
 
 
@@ -365,6 +409,16 @@ def main(argv: list[str] | None = None) -> int:
     p_scan = sub.add_parser("scansion", help="Render plain-text scansion")
     p_scan.add_argument("pattern", help="Pattern string")
 
+    # lint  ← NEW
+    p_lint = sub.add_parser("lint", help="Score text with MCORE-1 lint engine")
+    p_lint.add_argument("text", help="Text to lint (e.g. a tweet draft)")
+    p_lint.add_argument("--t-low", type=float, default=0.25, metavar="T_LOW",
+                        help="Risk threshold for 'no' action (default: 0.25)")
+    p_lint.add_argument("--t-high", type=float, default=0.65, metavar="T_HIGH",
+                        help="Risk threshold for 'yes' action (default: 0.65)")
+    p_lint.add_argument("--json", action="store_true",
+                        help="Output result as JSON")
+
     # info
     sub.add_parser("info", help="Show version and conformance info")
 
@@ -417,6 +471,7 @@ def main(argv: list[str] | None = None) -> int:
         "encode": cmd_encode,
         "decode": cmd_decode,
         "scansion": cmd_scansion,
+        "lint": cmd_lint,
         "info": cmd_info,
         "doctor": cmd_doctor,
         "smoke": cmd_smoke,
