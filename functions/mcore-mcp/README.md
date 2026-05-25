@@ -79,7 +79,9 @@ When debugging, prefer **this repo’s** `main.py`: snippets that use `execution
 
 ## Responses
 
-JSON from **`mcore_check_tree`** is returned as-is (HTTP status mirrored when the execution reports an error). **GET** returns a small health JSON payload.
+JSON from **`mcore_check_tree`** is returned as-is when the child succeeds. If the child **crashes** (often missing **`mcore_src/`**), the gateway returns **`error: "child_function_failed"`** with **`child_errors`** (stderr / traceback from Appwrite) instead of a generic empty body when possible.
+
+**GET** returns a small health JSON payload.
 
 Logs include a banner and pretty-printed JSON (`=== mcore_mcp_gateway result ===`) before each response.
 

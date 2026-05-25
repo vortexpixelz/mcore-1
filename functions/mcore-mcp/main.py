@@ -74,6 +74,27 @@ def _execution_status(execution: Any) -> str:
     return str(st or "").lower()
 
 
+def _execution_phase(st: str) -> str:
+    """Normalize SDK / API strings like ``executionstatus.failed`` or ``failed``."""
+    u = (st or "").lower()
+    if "fail" in u:
+        return "failed"
+    if "cancel" in u:
+        return "canceled"
+    if "complete" in u:
+        return "completed"
+    return "running"
+
+
+def _execution_errors(execution: Any) -> str:
+    if isinstance(execution, dict):
+        return str(execution.get("errors") or "")
+    e = getattr(execution, "errors", None)
+    if e is None and hasattr(execution, "model_dump"):
+        e = execution.model_dump(by_alias=True).get("errors")
+    return str(e or "")
+
+
 def _request_method(context) -> str:  # noqa: ANN001
     m = getattr(context.req, "method", None) or "GET"
     return str(m).upper()
@@ -183,9 +204,10 @@ def _forward_to_check_tree(context, body: dict[str, Any]) -> dict[str, Any]:  # 
         has_body = (isinstance(raw, str) and raw.strip()) or (isinstance(raw, dict) and bool(raw))
         if has_body:
             break
-        if st in ("failed", "canceled", "cancelled"):
+        phase = _execution_phase(st)
+        if phase in ("failed", "canceled"):
             break
-        if st == "completed" and i >= 2:
+        if phase == "completed" and i >= 2:
             break
 
         if not ex_id:
@@ -200,6 +222,15 @@ def _forward_to_check_tree(context, body: dict[str, Any]) -> dict[str, Any]:  # 
     raw, status = _execution_response(execution)
     status_code = int(status) if status is not None else 200
     if raw in (None, "") or (isinstance(raw, str) and not raw.strip()):
+        errs = _execution_errors(execution).strip()
+        if errs:
+            context.log(f"[mcore_mcp] child stderr/errors present len={len(errs)}")
+            return {
+                "error": "child_function_failed",
+                "child_execution_id": ex_id,
+                "child_status": _execution_status(execution),
+                "child_errors": errs[:12000],
+            }
         dbg = ""
         if hasattr(execution, "model_dump"):
             try:
