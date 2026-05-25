@@ -142,6 +142,10 @@ pytest -x --tb=short      # stop on first failure
 | 3     | Generation | ✓      | Completion operator, QuantitativeMetrics |
 | 4     | Full       | ◐      | Terminal + TokenStream renderers |
 
+## Project management (Linear)
+
+Issues and PRs are tracked in **Linear** with GitHub linked for status automation. Setup checklist, branch/PR linking, and Autolink notes: [docs/LINEAR.md](docs/LINEAR.md).
+
 ## Key references
 
 - Faust & Ulfsbjorninn (2025). "The three degrees of metrical strength." *J. Linguistics* 61(4).
