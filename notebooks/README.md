@@ -96,3 +96,5 @@ Keep **Layer 1** (operators / code) aligned with `mcore_py` and the spec. Use th
 - Prefer **nbconvert** or CI to execute `notebooks/*` only when dependencies and data paths are pinned.
 
 For **Linear + PR linking**, see [docs/LINEAR.md](../docs/LINEAR.md) and the root [README](../README.md).
+
+**Repository audit (VOR-117):** [docs/VOR-117_REPOSITORY_AUDIT.md](../docs/VOR-117_REPOSITORY_AUDIT.md) — four buckets, checklists, reviewer-pressure map.
