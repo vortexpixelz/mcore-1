@@ -17,6 +17,19 @@ in this repo.  See **`src/mcore_1/README.md`** and **`HANDOFF_TO_GJB2.md`** for
 API details and copy-paste commands for the **gjb2-mcore-sonification** paper
 repo.
 
+## Appwrite backend + MCP (optional)
+
+For multi-tenant persistence, serverless **check_tree**, and LLM tool discovery:
+
+- **Docs:** `docs/APPWRITE_ARCHITECTURE.md`, `docs/APPWRITE_DATABASE_SCHEMA.md`, `docs/APPWRITE_SETUP.md`, `docs/APPWRITE_DEPLOYMENT.md`, `docs/MIGRATION_APPWRITE.md`
+- **Function:** `functions/check_tree/` (DNA encode + weight / DNA / deletion ops)
+- **MCP server:** `pip install -e ".[mcp]"` then `mcore-mcp` or `python -m mcore_mcp.server`
+- **Appwrite client helpers:** `src/mcore_appwrite/`
+- **Env template:** `.env.example`
+
+Core math remains in **`src/mcore_py`** and **`src/mcore_1`**; cloud layers are opt-in.
+
+Optional **PostHog** server-side events: set `POSTHOG_API_KEY` (see `src/mcore_mcp/analytics.py`).
 
 | Domain | Overlay | States | Conservation law |
 |--------|---------|--------|-----------------|
