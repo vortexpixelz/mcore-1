@@ -8,7 +8,15 @@ MCORE-1 is a formal system built around one observation: a surprising number of 
 
 The algebra is ternary: three states (S1 / S2 / S3), one addition rule (S1+S1=S2, S1+S2=S3, S2+S2=OVERFLOW), and a checker that enforces conservation across any tree structure. The same function validates a Sanskrit metrical foot, a CpG island's methylation budget, a quantum gate sequence's resource allocation, and a DNA frameshift's downstream carry cascade.
 
-## Domains
+## GJB2 / paper integration (`mcore_1`)
+
+The **`mcore_1`** package (under `src/mcore_1/`) provides DNA carry encoding, a
+recursive bisection metrical tree, and cascade-style certificates checked with
+the same **`mcore_py.checker.check_tree`** post-order validator used elsewhere
+in this repo.  See **`src/mcore_1/README.md`** and **`HANDOFF_TO_GJB2.md`** for
+API details and copy-paste commands for the **gjb2-mcore-sonification** paper
+repo.
+
 
 | Domain | Overlay | States | Conservation law |
 |--------|---------|--------|-----------------|
