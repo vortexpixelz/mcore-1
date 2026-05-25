@@ -146,12 +146,29 @@ def _forward_to_check_tree(context, body: dict[str, Any]) -> dict[str, Any]:  # 
     ep = endpoint if endpoint.endswith("/v1") else f"{endpoint}/v1"
     client = Client().set_endpoint(ep).set_project(project).set_key(key)
     functions = Functions(client)
+
+    _payload_preview = json.dumps(body, default=str)
+    if len(_payload_preview) > 4000:
+        _payload_preview = _payload_preview[:4000] + "...<truncated>"
+    context.log(f"[mcore_mcp] target_function_id={fid!r}")
+    context.log(f"[mcore_mcp] forward_payload={_payload_preview}")
+    context.log(
+        "[mcore_mcp] auth: "
+        f"x_appwrite_key={bool(_header_get(context, 'x-appwrite-key'))} "
+        f"APPWRITE_API_KEY={bool(os.environ.get('APPWRITE_API_KEY'))} "
+        f"project={bool(project)} endpoint={bool(endpoint)}"
+    )
+
     # Child function must see POST + JSON (defaults omitting ``method`` can yield GET).
     execution = functions.create_execution(
         function_id=fid,
         body=json.dumps(body),
         xasync=False,
         method=ExecutionMethod.POST,
+    )
+    context.log(
+        "[mcore_mcp] create_execution_return "
+        f"status={_execution_status(execution)!r} id={_execution_id(execution)!r}"
     )
     ex_id = _execution_id(execution)
     # Sync create can still return before responseBody is filled — poll get_execution.
@@ -200,7 +217,12 @@ def _forward_to_check_tree(context, body: dict[str, Any]) -> dict[str, Any]:  # 
         try:
             out = json.loads(raw)
         except json.JSONDecodeError as e:
+            context.error(f"[mcore_mcp] invalid JSON from child: {e!s}")
             return {"error": "invalid_json", "detail": str(e), "raw": str(raw)[:500]}
+    context.log(
+        "[mcore_mcp] child_response_parsed "
+        f"upstream_http={status_code} top_keys={list(out.keys()) if isinstance(out, dict) else type(out).__name__}"
+    )
     if status_code >= 400:
         return {"error": "function_http_error", "upstream_status": status_code, "payload": out}
     return out

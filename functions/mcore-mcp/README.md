@@ -58,6 +58,8 @@ Use **HTTP POST** with **`Content-Type: application/json`**. If the Appwrite Con
 
 The gateway **polls** `get_execution` for a short window after `create_execution`, because the API can return before `responseBody` is populated (otherwise you may see `empty_response_body` even when the child function succeeds).
 
+When debugging, prefer **this repo’s** `main.py`: snippets that use `execution["response"]`, import `ExecutionMethod` from `appwrite.services.functions`, omit `set_key`, or pass a second argument to `context.res.json(..., status)` are easy to get wrong with the current Python SDK / Open Runtimes.
+
 **1. Tool-style (recommended for a future MCP adapter):**
 
 ```json
