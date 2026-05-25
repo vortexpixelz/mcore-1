@@ -41,6 +41,8 @@ This repo’s handler lives at **`src/main.py`** (function `main(context)` for A
 - Prefer the Console’s **Entrypoint** field set to **`src/main.py`** (if shown).
 - If there is a separate **Execute command** and it is set to **`python main.py`**, that is **incorrect** for this layout (there is no `main.py` in the function root). Clear it to use the default runtime launcher, **or** set it only if your Open Runtimes docs require something like invoking `src/main.py` explicitly.
 
+**Python response:** use **`return context.res.json(result)`** with a single argument. Passing a second HTTP-status argument to `res.json()` has been reported to produce an **empty `responseBody`** on some Open Runtimes builds; encode errors in the JSON object instead (the handler already uses an `"error"` field).
+
 After changing it, create a **new deployment** (Git or manual zip).
 
 ## Automated bundle (repo root)

@@ -83,7 +83,7 @@ def _parse_json_body(context) -> dict[str, Any] | None:  # noqa: ANN001
     return raw
 
 
-def _forward_to_check_tree(context, body: dict[str, Any]) -> tuple[dict[str, Any], int]:  # noqa: ANN001
+def _forward_to_check_tree(context, body: dict[str, Any]) -> dict[str, Any]:  # noqa: ANN001
     """Call check_tree using Appwrite SDK.
 
     When this handler runs **inside** Appwrite, prefer the per-execution **dynamic
@@ -111,7 +111,7 @@ def _forward_to_check_tree(context, body: dict[str, Any]) -> tuple[dict[str, Any
                 "Function, else APPWRITE_API_KEY). Grant this function scopes to create "
                 "executions on the target function."
             ),
-        }, 500
+        }
 
     from appwrite.client import Client
     from appwrite.enums.execution_method import ExecutionMethod
@@ -130,19 +130,18 @@ def _forward_to_check_tree(context, body: dict[str, Any]) -> tuple[dict[str, Any
     raw, status = _execution_response(execution)
     status_code = int(status) if status is not None else 200
     if raw in (None, ""):
-        return {"error": "empty_response_body"}, 502
+        return {"error": "empty_response_body"}
     try:
         out = json.loads(raw)
     except json.JSONDecodeError as e:
-        return {"error": "invalid_json", "detail": str(e), "raw": str(raw)[:500]}, 502
+        return {"error": "invalid_json", "detail": str(e), "raw": str(raw)[:500]}
     if status_code >= 400:
-        return {"error": "function_http_error", "status": status_code, "body": out}, status_code
-    return out, 200
+        return {"error": "function_http_error", "upstream_status": status_code, "payload": out}
+    return out
 
 
 def main(context):  # noqa: ANN001 — Appwrite injects context type
     result: dict[str, Any]
-    status = 200
     try:
         method = _request_method(context)
         data = _parse_json_body(context)
@@ -167,18 +166,16 @@ def main(context):  # noqa: ANN001 — Appwrite injects context type
                 "error": "JSON object body required",
                 "detail": "Send Content-Type application/json with a JSON object, or wrapped {data: {...}}.",
             }
-            status = 400
         else:
             tool = data.get("tool")
             if tool in ("mcore_check_tree", "check_tree", "check_tree_function"):
                 payload = data.get("arguments")
                 if not isinstance(payload, dict):
                     result = {"error": "arguments (object) required for tool calls"}
-                    status = 400
                 else:
-                    result, status = _forward_to_check_tree(context, payload)
+                    result = _forward_to_check_tree(context, payload)
             elif "op" in data:
-                result, status = _forward_to_check_tree(context, data)
+                result = _forward_to_check_tree(context, data)
             else:
                 result = {
                     "error": "unsupported_request",
@@ -187,13 +184,11 @@ def main(context):  # noqa: ANN001 — Appwrite injects context type
                         'or {"op":"dna_encode",...}'
                     ),
                 }
-                status = 400
     except Exception:  # noqa: BLE001
         context.log(traceback.format_exc())
         context.error("mcore_mcp_gateway: unhandled exception")
         result = {"error": "internal_error"}
-        status = 500
 
     context.log("=== mcore_mcp_gateway result ===")
     context.log(json.dumps(result, indent=2))
-    return context.res.json(result, status)
+    return context.res.json(result)

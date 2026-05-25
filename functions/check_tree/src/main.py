@@ -59,7 +59,6 @@ def main(context):  # noqa: ANN001 — Appwrite injects context type
     from mcore_1.encoder import dna_to_trits
 
     result: dict[str, object]
-    status = 200
 
     try:
         if context.req.method == "GET":
@@ -68,14 +67,12 @@ def main(context):  # noqa: ANN001 — Appwrite injects context type
             data = context.req.body_json
             if not isinstance(data, dict):
                 result = {"error": "JSON object body required"}
-                status = 400
             else:
                 op = data.get("op")
                 if op == "dna_encode":
                     dna = data.get("dna")
                     if not isinstance(dna, str) or not dna:
                         result = {"error": "dna (non-empty string) required"}
-                        status = 400
                     else:
                         trits, log = dna_to_trits(dna)
                         result = {
@@ -90,7 +87,6 @@ def main(context):  # noqa: ANN001 — Appwrite injects context type
                     weights = data.get("weights")
                     if not isinstance(weights, list):
                         result = {"error": "weights (list[int]) required"}
-                        status = 400
                     else:
                         depth = data.get("depth")
                         d: int | None = None if depth is None else int(depth)
@@ -108,7 +104,6 @@ def main(context):  # noqa: ANN001 — Appwrite injects context type
                     dna = data.get("dna")
                     if not isinstance(dna, str) or not dna:
                         result = {"error": "dna (non-empty string) required"}
-                        status = 400
                     else:
                         depth = data.get("depth")
                         d = None if depth is None else int(depth)
@@ -131,10 +126,8 @@ def main(context):  # noqa: ANN001 — Appwrite injects context type
                         result = {
                             "error": "weights_wt and weights_mut (lists) required",
                         }
-                        status = 400
                     elif not isinstance(k, int):
                         result = {"error": "deletion_pos_1 (int) required"}
-                        status = 400
                     else:
                         nodes = check_deletion([int(x) for x in wt], [int(x) for x in mut], k)
                         _posthog_capture(
@@ -148,18 +141,16 @@ def main(context):  # noqa: ANN001 — Appwrite injects context type
                         result = {"nodes": _node_results_to_json(nodes)}
                 else:
                     result = {"error": f"unknown op: {op!r}"}
-                    status = 400
 
     except ValueError as e:
         _posthog_capture("appwrite_function_check_tree_error", {"kind": "ValueError"})
         result = {"error": str(e)}
-        status = 400
     except Exception:  # noqa: BLE001
         context.log(traceback.format_exc())
         _posthog_capture("appwrite_function_check_tree_error", {"kind": "internal"})
         result = {"error": "internal_error"}
-        status = 500
 
     context.log("=== mcore_check_tree result ===")
     context.log(json.dumps(result, indent=2))
-    return context.res.json(result, status)
+    # Do not pass HTTP status as 2nd arg — some Open Runtimes drop the body (empty responseBody).
+    return context.res.json(result)
