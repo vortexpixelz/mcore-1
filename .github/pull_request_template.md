@@ -5,8 +5,8 @@
 ## Linear
 
 <!-- Link the issue so status automation works. Examples:
-  Fixes SYM-123
-  Ref SYM-42
+  Fixes VOR-117
+  Ref VOR-108
 -->
 -
 

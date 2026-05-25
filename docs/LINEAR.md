@@ -23,19 +23,19 @@ Pick **one** of these (Linear recognizes them):
 
 | Method | Example |
 |--------|---------|
-| **Branch name** | `sym-42-add-cli-smoke` — use **Copy git branch name** on the issue (`Cmd/Ctrl+Shift+.`). |
-| **PR title** | `SYM-42 Add CLI smoke test` |
-| **PR description** | `Fixes SYM-42` or `Ref SYM-42` (closing vs non-closing magic words — [docs](https://linear.app/docs/github#link-through-pull-requests)). |
+| **Branch name** | `vor-117-mcore-1-check` — use **Copy git branch name** on the issue (`Cmd/Ctrl+Shift+.`). |
+| **PR title** | `VOR-117 Add notebook taxonomy` |
+| **PR description** | `Fixes VOR-117` or `Ref VOR-117` (closing vs non-closing magic words — [docs](https://linear.app/docs/github#link-through-pull-requests)). |
 
-Replace **`SYM`** with your team’s **issue ID prefix** from Linear (e.g. `ENG`, `MCORE`).
+Use your team’s real **issue ID prefix** (Symonic solo dev env uses **`VOR`**).
 
 ## 4. GitHub Autolink (optional)
 
-So `SYM-123` in PR bodies becomes a link:
+So `VOR-123` in PR bodies becomes a link:
 
 - Repo **Settings → General → Autolink references** → add reference URL:  
-  `https://linear.app/<your-workspace>/issue/SYM-<num>`  
-  (Linear documents the exact pattern per team: [Autolink](https://linear.app/docs/github#enable-autolink).)
+  `https://linear.app/vortexpixel-solo-dev-env/issue/VOR-<num>/`  
+  ([Autolink](https://linear.app/docs/github#enable-autolink); adjust the workspace slug if you rename it.)
 
 ## 5. Suggested Linear structure (MCORE / research)
 
@@ -50,11 +50,16 @@ Tune to your real teams; this is a **starting convention**.
 
 ## 6. Branch naming with Cursor agents
 
-Cloud/agent branches often look like `cursor/feature-8f62`. To still link Linear:
+Cloud/agent branches often look like `cursor/feature-8f62`. Linear will not see the issue ID in the branch unless you paste it — put **`VOR-___`** in the **PR title or description** (see §3).
 
-- Put **`SYM-123`** in the **PR title or description** even if the branch name does not include it.
+## 7. Paper / repo checklist (Linear)
 
-## 7. What we cannot do from this repository
+Track submission engineering and cross-repo checks as **Linear issues**, not only in chat.
+
+- Example — **mcore-1 + paper alignment:** [VOR-117 — mcore-1 check](https://linear.app/vortexpixel-solo-dev-env/issue/VOR-117/mcore-1-check)  
+- Notebook discipline (taxonomy, observation vs interpretation): [notebooks/README.md](../notebooks/README.md)
+
+## 8. What we cannot do from this repository
 
 - Create your Linear workspace, teams, or API keys.
 - Install the GitHub app (requires GitHub **admin** / org owner as appropriate).
