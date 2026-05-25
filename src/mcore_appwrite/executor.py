@@ -22,6 +22,7 @@ def execute_check_tree_function(cfg: AppwriteConfig, payload: dict[str, Any]) ->
     if not cfg.check_tree_function_id:
         raise RuntimeError("APPWRITE_FUNCTION_CHECK_TREE_ID is not set")
 
+    from appwrite.enums.execution_method import ExecutionMethod
     from appwrite.services.functions import Functions
 
     client = build_admin_client(cfg)
@@ -29,6 +30,8 @@ def execute_check_tree_function(cfg: AppwriteConfig, payload: dict[str, Any]) ->
     execution = functions.create_execution(
         function_id=cfg.check_tree_function_id,
         body=json.dumps(payload),
+        xasync=False,
+        method=ExecutionMethod.POST,
     )
     raw, status = _execution_response(execution)
     if raw in (None, ""):

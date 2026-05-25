@@ -30,9 +30,57 @@ def _header_get(context, name: str) -> str | None:  # noqa: ANN001
 def _execution_response(execution: Any) -> tuple[Any, Any]:
     if isinstance(execution, dict):
         return execution.get("responseBody"), execution.get("responseStatusCode")
-    rb = getattr(execution, "responseBody", None)
-    sc = getattr(execution, "responseStatusCode", 200)
+    rb = (
+        getattr(execution, "response_body", None)
+        or getattr(execution, "responseBody", None)
+        or getattr(execution, "responsebody", None)
+    )
+    sc = (
+        getattr(execution, "response_status_code", None)
+        or getattr(execution, "responseStatusCode", None)
+        or getattr(execution, "responsestatuscode", None)
+        or 200
+    )
+    if rb is None and hasattr(execution, "model_dump"):
+        dump = execution.model_dump(by_alias=True)
+        rb = dump.get("responseBody")
+        sc = dump.get("responseStatusCode", sc)
     return rb, sc
+
+
+def _request_method(context) -> str:  # noqa: ANN001
+    m = getattr(context.req, "method", None) or "GET"
+    return str(m).upper()
+
+
+def _parse_json_body(context) -> dict[str, Any] | None:  # noqa: ANN001
+    """Return a dict payload from body_json, body_text, or Appwrite ``data`` wrapper."""
+    raw = getattr(context.req, "body_json", None)
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except json.JSONDecodeError:
+            raw = None
+    if not isinstance(raw, dict):
+        text = getattr(context.req, "body_text", None) or getattr(context.req, "bodyText", None)
+        if isinstance(text, str) and text.strip():
+            try:
+                raw = json.loads(text)
+            except json.JSONDecodeError:
+                raw = None
+    if not isinstance(raw, dict):
+        return None
+    inner = raw.get("data")
+    if isinstance(inner, str) and inner.strip():
+        try:
+            parsed = json.loads(inner)
+            if isinstance(parsed, dict):
+                return parsed
+        except json.JSONDecodeError:
+            pass
+    elif isinstance(inner, dict):
+        return inner
+    return raw
 
 
 def _forward_to_check_tree(context, body: dict[str, Any]) -> tuple[dict[str, Any], int]:  # noqa: ANN001
@@ -66,12 +114,19 @@ def _forward_to_check_tree(context, body: dict[str, Any]) -> tuple[dict[str, Any
         }, 500
 
     from appwrite.client import Client
+    from appwrite.enums.execution_method import ExecutionMethod
     from appwrite.services.functions import Functions
 
     ep = endpoint if endpoint.endswith("/v1") else f"{endpoint}/v1"
     client = Client().set_endpoint(ep).set_project(project).set_key(key)
     functions = Functions(client)
-    execution = functions.create_execution(function_id=fid, body=json.dumps(body))
+    # Child function must see POST + JSON (defaults omitting ``method`` can yield GET).
+    execution = functions.create_execution(
+        function_id=fid,
+        body=json.dumps(body),
+        xasync=False,
+        method=ExecutionMethod.POST,
+    )
     raw, status = _execution_response(execution)
     status_code = int(status) if status is not None else 200
     if raw in (None, ""):
@@ -89,40 +144,50 @@ def main(context):  # noqa: ANN001 — Appwrite injects context type
     result: dict[str, Any]
     status = 200
     try:
-        if context.req.method == "GET":
+        method = _request_method(context)
+        data = _parse_json_body(context)
+        context.log(f"[mcore_mcp] incoming_method={method} body_keys={list(data) if data else None}")
+
+        if method == "GET":
             result = {
                 "service": "mcore_mcp_gateway",
                 "ok": True,
+                "note": (
+                    "This response is only for HTTP GET (health). To forward to "
+                    "mcore_check_tree you must use HTTP POST with Content-Type: application/json "
+                    "and a JSON object body (Console: set method POST, not GET)."
+                ),
                 "hint": (
                     'POST JSON: {"tool":"mcore_check_tree","arguments":{...}} '
                     'or {"op":"dna_encode",...} passthrough'
                 ),
             }
+        elif data is None:
+            result = {
+                "error": "JSON object body required",
+                "detail": "Send Content-Type application/json with a JSON object, or wrapped {data: {...}}.",
+            }
+            status = 400
         else:
-            data = context.req.body_json
-            if not isinstance(data, dict):
-                result = {"error": "JSON object body required"}
-                status = 400
-            else:
-                tool = data.get("tool")
-                if tool in ("mcore_check_tree", "check_tree", "check_tree_function"):
-                    payload = data.get("arguments")
-                    if not isinstance(payload, dict):
-                        result = {"error": "arguments (object) required for tool calls"}
-                        status = 400
-                    else:
-                        result, status = _forward_to_check_tree(context, payload)
-                elif "op" in data:
-                    result, status = _forward_to_check_tree(context, data)
-                else:
-                    result = {
-                        "error": "unsupported_request",
-                        "hint": (
-                            'Use {"tool":"mcore_check_tree","arguments":{...}} '
-                            'or {"op":"dna_encode",...}'
-                        ),
-                    }
+            tool = data.get("tool")
+            if tool in ("mcore_check_tree", "check_tree", "check_tree_function"):
+                payload = data.get("arguments")
+                if not isinstance(payload, dict):
+                    result = {"error": "arguments (object) required for tool calls"}
                     status = 400
+                else:
+                    result, status = _forward_to_check_tree(context, payload)
+            elif "op" in data:
+                result, status = _forward_to_check_tree(context, data)
+            else:
+                result = {
+                    "error": "unsupported_request",
+                    "hint": (
+                        'Use {"tool":"mcore_check_tree","arguments":{...}} '
+                        'or {"op":"dna_encode",...}'
+                    ),
+                }
+                status = 400
     except Exception:  # noqa: BLE001
         context.log(traceback.format_exc())
         context.error("mcore_mcp_gateway: unhandled exception")

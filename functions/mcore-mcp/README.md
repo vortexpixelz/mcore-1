@@ -54,6 +54,8 @@ When this handler runs **as an Appwrite Function**, the executor injects **`x-ap
 
 ## Request shapes (POST JSON)
 
+Use **HTTP POST** with **`Content-Type: application/json`**. If the Appwrite Console “Create execution” UI defaults to **GET**, the gateway returns the health JSON with a **`note`** explaining that only POST forwards to `mcore_check_tree`.
+
 **1. Tool-style (recommended for a future MCP adapter):**
 
 ```json
