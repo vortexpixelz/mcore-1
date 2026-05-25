@@ -10,6 +10,16 @@ Thin **HTTP JSON** bridge: forwards payloads to your existing **`mcore_check_tre
 | **Build command** | `pip install -r requirements.txt` |
 | **Entrypoint** | **`main.py`** (handler `main(context)`) |
 
+### If the build says `No such file or directory: 'requirements.txt'`
+
+The build runs with its **current working directory** set to whatever Appwrite uses as the **deployment / root directory**. That directory **must** be the folder that contains this file in Git: `functions/mcore-mcp/requirements.txt`.
+
+1. **Wrong path (most common)** — In the Console, set **Root directory** / **Deployment directory** to exactly **`functions/mcore-mcp`** (hyphen, not `mcore_mcp`). Do **not** leave it empty or set it to `/` unless you also change the build command (see below).
+2. **Wrong branch** — The branch Appwrite deploys must include the `functions/mcore-mcp/` folder (merge your PR or point Git at the branch that has these files).
+3. **Stuck at repo root only** — If your UI cannot scope the build to a subfolder, use:
+   - **Build command:** `pip install -r functions/mcore-mcp/requirements.txt`
+   - **Entrypoint:** `functions/mcore-mcp/main.py` (or your console’s equivalent path to the handler)
+
 ## Environment variables (function scope)
 
 Same project credentials as other server-side callers, plus the **target** function id:
