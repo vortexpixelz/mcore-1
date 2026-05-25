@@ -6,7 +6,7 @@ import pytest
 from mcore_py.checker import ErrorKind
 from mcore_py.model import Constituent, Level, ProsodicUnit, Trit
 
-from mcore_1.check_tree import check_tree
+from mcore_1.check_tree import check_constituent
 from mcore_1.tree import build_post_deletion_frozen_tree, descendant_orig_indices
 
 
@@ -69,7 +69,7 @@ def test_carry_cascade_theorem_1_and_2(k: int) -> None:
     assert len(dna) == 30
     root = build_post_deletion_frozen_tree(dna, k)
     assert isinstance(root, Constituent)
-    result = check_tree(root)
+    result = check_constituent(root)
     assert not result.valid
 
     for node in _constituents(root):
@@ -95,7 +95,7 @@ def test_carry_cascade_endpoints_smoke(k: int) -> None:
     dna = FIXED_DNA_30
     root = build_post_deletion_frozen_tree(dna, k)
     assert isinstance(root, Constituent)
-    result = check_tree(root)
+    result = check_constituent(root)
     assert not result.valid
     assert result.errors
 
@@ -106,7 +106,7 @@ def test_theorem_3_shallowest_failure_near_leaf(k: int) -> None:
     dna = FIXED_DNA_30
     root = build_post_deletion_frozen_tree(dna, k)
     assert isinstance(root, Constituent)
-    result = check_tree(root)
+    result = check_constituent(root)
 
     internals = [n for n in _constituents(root) if _span_covers_deleted_site(descendant_orig_indices(n), k)]
     assert internals
@@ -132,7 +132,7 @@ def test_empty_constituent_after_structure_loss() -> None:
     """``EMPTY_CONSTITUENT`` is raised for a constituent with no children."""
     parent = ProsodicUnit(weight=Trit.S1, level=Level.L2_GANA, label="empty-parent")
     bad = Constituent(parent=parent, children=[])
-    res = check_tree(bad)
+    res = check_constituent(bad)
     assert not res.valid
     assert any(e.kind == ErrorKind.EMPTY_CONSTITUENT for e in res.errors)
 
@@ -146,7 +146,7 @@ def test_optional_gjb2_prefix_fragment(k: int) -> None:
         pytest.skip("k out of range for this fragment")
     root = build_post_deletion_frozen_tree(dna, k)
     assert isinstance(root, Constituent)
-    result = check_tree(root)
+    result = check_constituent(root)
     assert not result.valid
     for node in _constituents(root):
         S = descendant_orig_indices(node)

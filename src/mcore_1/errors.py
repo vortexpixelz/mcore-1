@@ -1,6 +1,6 @@
 """Error kinds for MCORE-1 tree validation (paper / GJB2 integration).
 
-These mirror the validation categories used by :func:`mcore_1.check_tree.check_tree`
+These mirror validation categories surfaced by :func:`mcore_1.check_tree.check_constituent`
 (which delegates to ``mcore_py.checker``).
 """
 

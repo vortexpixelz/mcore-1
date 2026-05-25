@@ -217,6 +217,33 @@ def build_post_deletion_frozen_tree(
     return root
 
 
+def build_frozen_after_deletion_trits(
+    weights_wt: list[int],
+    weights_mut: list[int],
+    deletion_pos_1: int,
+) -> Constituent | ProsodicUnit:
+    """Mutant bisection tree with mutant leaves and internals frozen from *weights_wt*.
+
+    Same rule as :func:`build_post_deletion_frozen_tree`, but trit streams are
+    passed in directly (no DNA encoder).  ``len(weights_wt) == n``,
+    ``len(weights_mut) == n - 1``, ``deletion_pos_1 == k`` in ``[1, n]``.
+    """
+    n = len(weights_wt)
+    if len(weights_mut) != n - 1:
+        raise ValueError("weights_mut must have length len(weights_wt) - 1")
+    if deletion_pos_1 < 1 or deletion_pos_1 > n:
+        raise ValueError(f"deletion_pos_1 must be in [1, {n}]")
+    if n == 0:
+        raise ValueError("weights_wt must be non-empty")
+    new_orig = [i for i in range(1, n + 1) if i != deletion_pos_1]
+    root = build_binary_metrical_tree(weights_mut, new_orig)
+    if isinstance(root, ProsodicUnit):
+        root = _wrap_singleton_leaf(root)
+    assert isinstance(root, Constituent)
+    _pooled_orig_trits_on_topology(root, weights_wt)
+    return root
+
+
 def _wrap_singleton_leaf(leaf: ProsodicUnit) -> Constituent:
     lo, hi = orig_span(leaf)
     parent = ProsodicUnit(

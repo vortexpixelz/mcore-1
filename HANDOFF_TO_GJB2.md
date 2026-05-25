@@ -18,15 +18,15 @@ Package path: **`src/mcore_1/`** (installed with the same editable install as
 | File | Purpose |
 |------|---------|
 | `encoder.py` | `dna_to_trits(dna) -> (trits, log)` — A=0, C=1, G=2, T=0, `ε_T=1` on T; `u=v+carry+ε_T`, `t=u%3`, `carry=u//3`. Docstring: **associative semigroup action** on carry state (not a monoid homomorphism from DNA to trit strings). |
-| `tree.py` | `build_binary_metrical_tree(trits, orig_indices)`, `build_post_deletion_frozen_tree(dna, k)`, `descendant_orig_indices(node)`, `orig_span(node)`, `frozen_weight_for_interval` (diagnostics). |
-| `check_tree.py` | `check_tree(root)` → **`mcore_py.checker.CheckResult`** (post-order; same as spec §10.1). |
+| `tree.py` | `build_binary_metrical_tree`, `build_post_deletion_frozen_tree`, `build_frozen_after_deletion_trits`, `descendant_orig_indices`, `orig_span`, `frozen_weight_for_interval` (diagnostics). |
+| `check_tree.py` | **Stable API:** `NodeResult`, `check_tree(weights, depth=...)`, `check_deletion(wt, mut, k)`; **`check_constituent(root)`** → `mcore_py.checker.CheckResult` for full `Constituent` trees. |
 | `errors.py` | `ErrorKind` enum (CONSERVATION / OVERFLOW / EMPTY_CONSTITUENT) — mirrors checker categories for paper-facing prose. |
 | `README.md` | Package-local overview. |
 
 Tests:
 
 - **`tests/test_cascade.py`** — carry cascade certificate (see caveats below).
-- **`tests/test_associativity.py`** — prefix split vs full DNA scan; iterator sanity.
+- **`tests/test_node_api.py`** — stable `check_tree` / `check_deletion` / `NodeResult` API.
 
 ---
 
@@ -59,16 +59,32 @@ for step in iter_encode_steps("ACGT"):
     print(step.index, step.base, step.carry_in, step.trit, step.carry_out)
 ```
 
-### Build metrical tree + run checker (no deletion)
+### Stable weight-stream API (preferred for gjb2 repo)
+
+```python
+from mcore_1.check_tree import NodeResult, check_tree, check_deletion
+
+# Leaf trits only (0=S1, 1=S2, 2=S3); optional depth must equal ceil(log2(n))
+rows: list[NodeResult] = check_tree([0, 1], depth=1)
+for r in rows:
+    print(r.node_id, r.leaf_lo, r.leaf_hi, r.valid, r.errors)  # errors ⊆ {"CONSERVATION","OVERFLOW"}
+
+# WT vs mutant streams (same semantics as DNA helper, without re-encoding)
+wt = [0, 1, 2, 0, 1, 2]       # length n
+mut = [0, 1, 1, 2, 0]         # length n-1 after deletion at k
+rows = check_deletion(wt, mut, deletion_pos_1=3)
+```
+
+### Build metrical tree + full ``mcore_py`` checker (``Constituent``)
 
 ```python
 from mcore_1.tree import build_binary_metrical_tree
-from mcore_1.check_tree import check_tree
+from mcore_1.check_tree import check_constituent
 from mcore_1.encoder import dna_to_trits
 
 trits, _ = dna_to_trits("ACGTACGT")
 root = build_binary_metrical_tree(trits, list(range(1, len(trits) + 1)))
-result = check_tree(root)
+result = check_constituent(root)
 assert result.valid
 ```
 
@@ -76,23 +92,36 @@ assert result.valid
 
 ```python
 from mcore_1.tree import build_post_deletion_frozen_tree, descendant_orig_indices
-from mcore_1.check_tree import check_tree
+from mcore_1.check_tree import check_constituent
 
 dna = "ACGTACGTACGTACGTACGTACGTACGTAC"  # length 30 fixture used in tests
 k = 12  # 1-based deletion site
 root = build_post_deletion_frozen_tree(dna, k)
-res = check_tree(root)
+res = check_constituent(root)
 assert not res.valid  # deliberate mismatch vs post-deletion re-encode
 
 S = descendant_orig_indices(root)  # root's descendant original indices
 print(S, len(res.errors))
 ```
 
-**Semantics (important for prose):** internal weights after deletion are set
-by re-pooling **pre-deletion** trits at each surviving column using the
-**post-deletion bisection topology**. Leaves keep **post-deletion** re-encoded
-trits.  Running `check_tree` then surfaces **CONSERVATION** / **OVERFLOW**
-where carry changed the suffix relative to the frozen certificate.
+Or equivalently without DNA objects:
+
+```python
+from mcore_1.encoder import dna_to_trits
+from mcore_1.check_tree import check_deletion
+
+dna = "ACGTACGTACGTACGTACGTACGTACGTAC"
+k = 12
+wt, _ = dna_to_trits(dna)
+mut, _ = dna_to_trits(dna[: k - 1] + dna[k:])
+rows = check_deletion(wt, mut, k)
+```
+
+**Semantics (frozen deletion check):** internal weights after deletion are set
+by re-pooling **WT** trits at each surviving column using the **mutant**
+bisection topology; leaves use **mutant** trits. Mismatches surface as
+**CONSERVATION** / **OVERFLOW** on :class:`NodeResult` rows (other ``mcore_py``
+error kinds still set ``valid=False`` but are omitted from the ``errors`` list).
 
 This is **not** a second copy of `gjb2-mcore-sonification/code/checker.py`
 (prefix associativity only); it is the **tree** checker wired to `mcore_py`.
@@ -123,7 +152,7 @@ This is **not** a second copy of `gjb2-mcore-sonification/code/checker.py`
 1. Depend on **mcore-1** as a git submodule, editable install, or copied
    subtree—**do not** fork `dna_to_trits` with different carry rules.
 2. Keep **`code/checker.py`** as the **linear** prefix associativity checker.
-3. Call **`mcore_1.build_post_deletion_frozen_tree`** + **`mcore_1.check_tree`**
+3. Call **`mcore_1.check_tree.check_tree(weights)`** / **`check_deletion`** from the paper code, or **`check_constituent`** when you already hold a ``Constituent`` tree.
    where the paper needs the **binary metrical tree** certificate.
 4. Cite **mcore-1** tag **`mcore-1-v0.2-review-candidate`** for reproducibility.
 
