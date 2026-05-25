@@ -2,6 +2,18 @@
 
 Serverless entry that mirrors the stable **`mcore_1.check_tree`** API and DNA carry encoding (`dna_to_trits`). Intended for high-throughput clients; the MCP server can delegate here when `APPWRITE_FUNCTION_CHECK_TREE_ID` is set.
 
+## Appwrite Console: Build command (required)
+
+In **Functions → your function → Settings → Build command**, set **exactly**:
+
+```text
+pip install -r requirements.txt
+```
+
+Do **not** leave `pip install` with no arguments — Appwrite runs that literally and pip errors with: *You must give at least one requirement to install*.
+
+After changing it, create a **new deployment** (Git or manual zip).
+
 ## Automated bundle (repo root)
 
 From the repository root:

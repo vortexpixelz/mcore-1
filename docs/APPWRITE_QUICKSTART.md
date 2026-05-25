@@ -51,6 +51,8 @@ PYTHONPATH=src uv run fastmcp list src/mcore_mcp/server.py --json
 
 Prerequisites: `appwrite login`, `appwrite init project`, function `$id` created in Console matching `APPWRITE_FUNCTION_ID`.
 
+**Build command in Console:** `pip install -r requirements.txt` (see `functions/check_tree/README.md`).
+
 ```bash
 export APPWRITE_FUNCTION_ID="mcore_check_tree"   # your function $id
 ./scripts/package_check_tree_bundle.sh
