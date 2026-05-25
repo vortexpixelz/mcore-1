@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 import traceback
 from typing import Any
 
@@ -46,6 +47,31 @@ def _execution_response(execution: Any) -> tuple[Any, Any]:
         rb = dump.get("responseBody")
         sc = dump.get("responseStatusCode", sc)
     return rb, sc
+
+
+def _execution_id(execution: Any) -> str | None:
+    if isinstance(execution, dict):
+        x = execution.get("$id") or execution.get("id")
+        return str(x) if x else None
+    if hasattr(execution, "model_dump"):
+        d = execution.model_dump(by_alias=True)
+        x = d.get("$id") or d.get("id")
+        if x:
+            return str(x)
+    for name in ("$id", "id"):
+        v = getattr(execution, name, None)
+        if v:
+            return str(v)
+    return None
+
+
+def _execution_status(execution: Any) -> str:
+    if isinstance(execution, dict):
+        return str(execution.get("status") or "").lower()
+    st = getattr(execution, "status", None)
+    if st is None and hasattr(execution, "model_dump"):
+        st = execution.model_dump(by_alias=True).get("status")
+    return str(st or "").lower()
 
 
 def _request_method(context) -> str:  # noqa: ANN001
@@ -127,14 +153,54 @@ def _forward_to_check_tree(context, body: dict[str, Any]) -> dict[str, Any]:  # 
         xasync=False,
         method=ExecutionMethod.POST,
     )
+    ex_id = _execution_id(execution)
+    # Sync create can still return before responseBody is filled — poll get_execution.
+    _poll_interval_s = 0.2
+    _poll_max = 60
+    for i in range(_poll_max):
+        raw, status = _execution_response(execution)
+        st = _execution_status(execution)
+        rb_len = len(raw) if isinstance(raw, str) else (len(json.dumps(raw)) if isinstance(raw, dict) else 0)
+        context.log(f"[mcore_mcp] child_exec i={i} id={ex_id!r} status={st!r} rb_type={type(raw).__name__} rb_len={rb_len}")
+
+        has_body = (isinstance(raw, str) and raw.strip()) or (isinstance(raw, dict) and bool(raw))
+        if has_body:
+            break
+        if st in ("failed", "canceled", "cancelled"):
+            break
+        if st == "completed" and i >= 2:
+            break
+
+        if not ex_id:
+            break
+        time.sleep(_poll_interval_s)
+        try:
+            execution = functions.get_execution(function_id=fid, execution_id=ex_id)
+        except Exception as e:  # noqa: BLE001
+            context.log(f"[mcore_mcp] get_execution failed: {e!r}")
+            break
+
     raw, status = _execution_response(execution)
     status_code = int(status) if status is not None else 200
-    if raw in (None, ""):
-        return {"error": "empty_response_body"}
-    try:
-        out = json.loads(raw)
-    except json.JSONDecodeError as e:
-        return {"error": "invalid_json", "detail": str(e), "raw": str(raw)[:500]}
+    if raw in (None, "") or (isinstance(raw, str) and not raw.strip()):
+        dbg = ""
+        if hasattr(execution, "model_dump"):
+            try:
+                dbg = json.dumps(execution.model_dump(by_alias=True), default=str)[:8000]
+            except Exception:  # noqa: BLE001
+                dbg = repr(execution)[:4000]
+        else:
+            dbg = repr(execution)[:4000]
+        context.log(f"[mcore_mcp] empty_response_body after_poll; execution_dump={dbg}")
+        return {"error": "empty_response_body", "child_execution_id": ex_id, "child_status": _execution_status(execution)}
+
+    if isinstance(raw, dict):
+        out = raw
+    else:
+        try:
+            out = json.loads(raw)
+        except json.JSONDecodeError as e:
+            return {"error": "invalid_json", "detail": str(e), "raw": str(raw)[:500]}
     if status_code >= 400:
         return {"error": "function_http_error", "upstream_status": status_code, "payload": out}
     return out
