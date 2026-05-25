@@ -8,6 +8,10 @@ Immutable read snapshot on **mcore-1**: tag **`mcore-1-v0.2-review-candidate`**
 (merge of audit / Linear docs work).  Paper integration notes on your side:
 `docs/MCORE1.md` on **`main`**.
 
+For **Appwrite** (persistence, Functions, MCP delegation) and **PostHog**
+telemetry on the MCP gateway, see **`docs/APPWRITE_ARCHITECTURE.md`** and
+**`mcp/README.md`** in this repository.
+
 ---
 
 ## What was added (mcore-1)

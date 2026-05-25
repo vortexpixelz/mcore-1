@@ -17,6 +17,64 @@ in this repo.  See **`src/mcore_1/README.md`** and **`HANDOFF_TO_GJB2.md`** for
 API details and copy-paste commands for the **gjb2-mcore-sonification** paper
 repo.
 
+## Live MCP + API service (single source of truth)
+
+This repository ships a **FastMCP** server (`MCORE-1`) that exposes the full
+surface area used in docs and tests: core metrical tools, **GJB2 / DNA**
+(`mcore_1`), **methylation + quantum** overlays, **acoustic phonon**
+summaries, **Base64-TME**, and optional **Appwrite Function** delegation for
+`check_tree`.
+
+### Project structure (edge + core)
+
+```text
+.
+├── appwrite.config.example.json   # starter Appwrite project export
+├── appwrite/
+│   └── appwrite.config.json.example
+├── docs/
+│   ├── APPWRITE_ARCHITECTURE.md   # Mermaid + narrative
+│   ├── APPWRITE_DATABASE_SCHEMA.md
+│   ├── APPWRITE_QUICKSTART.md     # one-screen commands
+│   ├── APPWRITE_SETUP.md
+│   ├── APPWRITE_DEPLOYMENT.md
+│   └── MIGRATION_APPWRITE.md
+├── functions/check_tree/          # Appwrite Function (DNA + check_tree ops)
+├── mcp/README.md                  # Claude Desktop snippet
+├── scripts/
+│   ├── mcp_dev.sh                 # uv + MCP Inspector
+│   ├── package_check_tree_bundle.sh
+│   └── deploy_appwrite_function.sh
+├── sdk/README.md                  # points to src/mcore_appwrite
+├── src/
+│   ├── mcore_py/                  # algebra, checker, overlays, audio, TME
+│   ├── mcore_1/                   # DNA carry + bisection + NodeResult API
+│   ├── mcore_mcp/                 # FastMCP server + PostHog hooks
+│   └── mcore_appwrite/            # Appwrite admin client + Function runner
+├── pyproject.toml                 # optional extras: dev, mcp, analysis, …
+├── uv.lock                        # reproducible env (uv)
+└── .env.example
+```
+
+### Commands (copy-paste)
+
+| Goal | Command |
+|------|---------|
+| **Reproducible install** | `uv sync --extra dev --extra mcp --extra analysis` |
+| **Tests** | `uv run pytest -q` |
+| **MCP Inspector (local “live” dev)** | `uv sync --extra dev --extra mcp --extra analysis && ./scripts/mcp_dev.sh` |
+| **List MCP tools (JSON)** | `PYTHONPATH=src uv run fastmcp list src/mcore_mcp/server.py --json` |
+| **Bundle Function** | `./scripts/package_check_tree_bundle.sh` |
+| **Deploy Function** | `export APPWRITE_FUNCTION_ID=mcore_check_tree && ./scripts/deploy_appwrite_function.sh` |
+
+Full narrative + deploy variants: **`docs/APPWRITE_QUICKSTART.md`**.  
+Env reference: **`.env.example`**.
+
+**Note:** This repo does not define a standalone `mcp dev` command; use **`./scripts/mcp_dev.sh`** (same as `uv run fastmcp dev inspector -m mcore_mcp.server` after `uv sync`).
+
+Core math remains in **`src/mcore_py`** and **`src/mcore_1`**; Appwrite and MCP are **opt-in**.
+
+Optional **PostHog** (`POSTHOG_API_KEY`): see `src/mcore_mcp/analytics.py`.
 
 | Domain | Overlay | States | Conservation law |
 |--------|---------|--------|-----------------|
@@ -137,8 +195,9 @@ trajectory = MethylationMetrics.decoherence_trajectory(
 ## Test suite
 
 ```bash
-pytest                    # 52 methylation + algebra + checker tests
-pytest -x --tb=short      # stop on first failure
+uv sync --extra dev --extra analysis --extra mcp
+uv run pytest -q
+uv run pytest -x --tb=short   # stop on first failure
 ```
 
 ## Conformance levels

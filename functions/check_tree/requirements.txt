@@ -1,0 +1,3 @@
+# Runtime: Appwrite Python 3.12 image includes pip.
+# PostHog is optional (analytics).
+posthog>=3.7,<4

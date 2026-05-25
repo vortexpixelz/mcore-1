@@ -1,0 +1,42 @@
+{
+  "_comment": "Copy to appwrite.config.json after `appwrite init project`. Full canonical schema: docs/APPWRITE_DATABASE_SCHEMA.md",
+  "projectId": "<PROJECT_ID>",
+  "endpoint": "https://<REGION>.cloud.appwrite.io/v1",
+  "functions": [
+    {
+      "$id": "mcore_check_tree",
+      "name": "MCORE check_tree (DNA + weights)",
+      "enabled": true,
+      "live": true,
+      "logging": true,
+      "runtime": "python-3.12",
+      "timeout": 60,
+      "entrypoint": "src/main.py",
+      "commands": "pip install -r requirements.txt",
+      "version": "v3",
+      "path": "functions/check_tree"
+    }
+  ],
+  "tablesDB": [
+    {
+      "$id": "mcore_main",
+      "name": "MCORE main database",
+      "enabled": true
+    }
+  ],
+  "tables": [],
+  "buckets": [
+    {
+      "$id": "mcore_artifacts",
+      "name": "TME exports, tree diagrams, WAV sonifications",
+      "enabled": true,
+      "maximumFileSize": 33554432,
+      "allowedFileExtensions": ["json", "png", "svg", "pdf", "txt", "wav"],
+      "compression": "gzip",
+      "encryption": false,
+      "antivirus": true
+    }
+  ],
+  "teams": [],
+  "topics": []
+}
