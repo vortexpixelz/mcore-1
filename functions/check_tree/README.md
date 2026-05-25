@@ -12,6 +12,18 @@ pip install -r requirements.txt
 
 Do **not** leave `pip install` with no arguments — Appwrite runs that literally and pip errors with: *You must give at least one requirement to install*.
 
+### Deployment directory (critical)
+
+The build **must** run with **`functions/check_tree/`** as the deployment root (Appwrite: **Deployment directory** = `functions/check_tree`, not `/` and not repo root).
+
+If the build log shows **`torch==`**, **`jupyter`**, **`scipy==1.17.1`**, etc., Appwrite is reading the **repo root** `requirements.txt` (the analysis stack). That file is **not** for this function and **torch has no wheel** on many Open Runtimes / Python builds — the install will fail.
+
+**Correct:** only `functions/check_tree/requirements.txt` is used (small set: `numpy`, `appwrite`, `posthog`).
+
+**Workaround if you must deploy from repo root:** set the build command to  
+`pip install -r functions/check_tree/requirements.txt`  
+and ensure **Entrypoint** still points at the handler under `functions/check_tree/` (e.g. `functions/check_tree/src/main.py` from repo root — depends on Appwrite version; prefer **narrow deployment directory** instead).
+
 After changing it, create a **new deployment** (Git or manual zip).
 
 ## Automated bundle (repo root)
