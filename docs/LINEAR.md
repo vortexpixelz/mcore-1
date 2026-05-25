@@ -56,7 +56,7 @@ Cloud/agent branches often look like `cursor/feature-8f62`. Linear will not see 
 
 Track submission engineering and cross-repo checks as **Linear issues**, not only in chat.
 
-- **VOR-117 — mcore-1 check** — [open in Linear](https://linear.app/vortexpixel-solo-dev-env/issue/VOR-117/mcore-1-check). In-repo companion: **[VOR-117 repository audit](VOR-117_REPOSITORY_AUDIT.md)** (four-bucket sprint: Formal / Experimental / Empirical / Interpretive).
+- **VOR-117 — mcore-1 check** — [open in Linear](https://linear.app/vortexpixel-solo-dev-env/issue/VOR-117/mcore-1-check). In-repo companion: **[VOR-117 repository audit](VOR-117_REPOSITORY_AUDIT.md)** (four-bucket sprint: Formal / Experimental / Empirical / Interpretive). After governance changes: **[Recompile & snapshot](RECOMPILE_AND_SNAPSHOT.md)** before deep-reading frozen artifacts.
 - Notebook discipline (taxonomy, observation vs interpretation): [notebooks/README.md](../notebooks/README.md)
 
 ## 8. What we cannot do from this repository

@@ -112,3 +112,5 @@ python -m mcore_py.cli doctor
 - GitHub ↔ Linear workflow: [LINEAR.md](LINEAR.md)
 
 When this audit is “done enough” for a milestone, **close or split VOR-117** into child issues per bucket so the beacon doesn’t stay a black hole.
+
+**After governance changes:** run the **recompile → snapshot → deep-read** sequence ([RECOMPILE_AND_SNAPSHOT.md](RECOMPILE_AND_SNAPSHOT.md)) so artifacts and prose stay aligned.

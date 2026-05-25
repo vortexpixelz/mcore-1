@@ -146,7 +146,7 @@ pytest -x --tb=short      # stop on first failure
 
 Issues and PRs are tracked in **Linear** with GitHub linked for status automation. Setup checklist, branch/PR linking, and Autolink notes: [docs/LINEAR.md](docs/LINEAR.md).
 
-**Notebook taxonomy and rigor template** (observation vs interpretation, four-bucket audit for VOR-117): [notebooks/README.md](notebooks/README.md) · [docs/VOR-117_REPOSITORY_AUDIT.md](docs/VOR-117_REPOSITORY_AUDIT.md).
+**Notebook taxonomy and rigor template** (observation vs interpretation, four-bucket audit for VOR-117): [notebooks/README.md](notebooks/README.md) · [docs/VOR-117_REPOSITORY_AUDIT.md](docs/VOR-117_REPOSITORY_AUDIT.md) · [docs/RECOMPILE_AND_SNAPSHOT.md](docs/RECOMPILE_AND_SNAPSHOT.md).
 
 ## Key references
 
