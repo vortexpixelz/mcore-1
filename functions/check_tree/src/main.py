@@ -160,5 +160,6 @@ def main(context):  # noqa: ANN001 — Appwrite injects context type
         result = {"error": "internal_error"}
         status = 500
 
+    context.log("=== mcore_check_tree result ===")
     context.log(json.dumps(result, indent=2))
     return context.res.json(result, status)

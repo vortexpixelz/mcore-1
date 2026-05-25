@@ -1,0 +1,4 @@
+# Appwrite Function: mcore_mcp_gateway (forwards tool-style JSON to mcore_check_tree)
+# Console Build command: pip install -r requirements.txt
+
+appwrite>=6.0
