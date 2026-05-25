@@ -1,8 +1,15 @@
-# SDK (Python)
+# SDK
 
-The installable package **`mcore_appwrite`** lives under **`src/mcore_appwrite/`** (same setuptools root as `mcore_py` / `mcore_1`). This directory holds cross-links and client-only snippets for documentation.
+The **Appwrite integration** for this repo is the Python package
+**`mcore_appwrite`** under **`src/mcore_appwrite/`** (installed with the rest of
+`mcore-py` from `src/`).
 
-- **Client factory:** `from mcore_appwrite import build_admin_client`
-- **Function runner:** `from mcore_appwrite.executor import execute_check_tree_function`
+| Module | Role |
+|--------|------|
+| `mcore_appwrite.config` | `AppwriteConfig.from_env()`, `use_remote_check_tree()` |
+| `mcore_appwrite.client` | `build_admin_client()` |
+| `mcore_appwrite.executor` | `execute_check_tree_function()` |
 
-See **`docs/APPWRITE_SETUP.md`** and **`docs/APPWRITE_ARCHITECTURE.md`**.
+There is no separate npm/TypeScript SDK in this repository; use
+`appwrite generate` for typed web clients against your TablesDB schema
+(**`docs/APPWRITE_DATABASE_SCHEMA.md`**).

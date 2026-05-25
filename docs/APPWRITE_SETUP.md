@@ -1,5 +1,8 @@
 # Appwrite setup (`appwrite init`)
 
+Start with **[APPWRITE_QUICKSTART.md](./APPWRITE_QUICKSTART.md)** for one-line
+`uv` + MCP + bundle flows. This page is the longer **CLI reference**.
+
 Follow [Appwrite CLI](https://appwrite.io/docs/tooling/command-line/installation) installation, then:
 
 ## 1. Login

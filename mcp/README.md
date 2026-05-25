@@ -1,22 +1,38 @@
 # MCP (Model Context Protocol)
 
-Implementation package: **`src/mcore_mcp/`** (module `mcore_mcp`). Install extras:
+Implementation: **`src/mcore_mcp/`** (`mcore_mcp` package). Prefer **uv**:
+
+```bash
+uv sync --extra dev --extra mcp --extra analysis
+uv run python -m mcore_mcp.server
+```
+
+Or classic pip:
 
 ```bash
 python3 -m pip install -e ".[mcp]"
-```
-
-Run (stdio — Claude Desktop / Cursor):
-
-```bash
 python3 -m mcore_mcp.server
 ```
 
-HTTP (Streamable HTTP):
+## Tools (overview)
+
+| Prefix | Area |
+|--------|------|
+| `mcore_validate_*`, `mcore_complete_*`, `mcore_trit_*`, `mcore_pattern_*` | Core algebra + TME |
+| `mcore_dna_*`, `mcore_check_tree_*`, `mcore_check_deletion` | `mcore_1` / GJB2 |
+| `mcore_methylation_*`, `mcore_quantum_*` | Overlays + trajectories |
+| `mcore_acoustic_*` | Gaussian phonon synthesis / FFT roundtrip |
+| `mcore_appwrite_*` | Raw Appwrite Function execution |
+
+Full list: `PYTHONPATH=src uv run fastmcp list src/mcore_mcp/server.py --json`
+
+## MCP Inspector (dev UI)
 
 ```bash
-python3 -m mcore_mcp.server --transport streamable-http --host 127.0.0.1 --port 8765
+./scripts/mcp_dev.sh
 ```
+
+Equivalent: `uv sync --extra dev --extra mcp --extra analysis && uv run fastmcp dev inspector -m mcore_mcp.server`
 
 ## Claude Desktop (example)
 
@@ -24,25 +40,18 @@ python3 -m mcore_mcp.server --transport streamable-http --host 127.0.0.1 --port 
 {
   "mcpServers": {
     "mcore-1": {
-      "command": "python3",
-      "args": ["-m", "mcore_mcp.server"],
-      "cwd": "/absolute/path/to/mcore-1",
-      "env": {}
+      "command": "uv",
+      "args": ["run", "python", "-m", "mcore_mcp.server"],
+      "cwd": "/absolute/path/to/mcore-1"
     }
   }
 }
 ```
 
-Add `PYTHONPATH` or use a venv where `mcore-py` is installed editable.
-
 ## Appwrite delegation
 
-Set in the environment (see root `.env.example`):
-
-- `APPWRITE_ENDPOINT`, `APPWRITE_PROJECT_ID`, `APPWRITE_API_KEY`
-- `APPWRITE_FUNCTION_CHECK_TREE_ID`
-- `APPWRITE_USE_FUNCTIONS=true` to route `mcore_check_tree_*` tools through the Function
+See root **`.env.example`**: `APPWRITE_*`, `APPWRITE_USE_FUNCTIONS=true` to route heavy `check_tree` tools through the Function.
 
 ## Appwrite MCP-for-API
 
-Generate a typed data client with `appwrite generate` and use it beside this server: **this MCP** exposes domain tools; **generated MCP** exposes CRUD aligned with your TablesDB schema.
+Use `appwrite generate` for typed TablesDB clients; this MCP stays **domain-first**.

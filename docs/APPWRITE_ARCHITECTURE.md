@@ -12,6 +12,52 @@ This document describes how the **mcore-1** repository layers **Appwrite** (auth
 
 > **Note:** [Cloudflare Agents SDK](https://developers.cloudflare.com/agents/) targets Workers/Durable Objects. This stack is **Appwrite + Python**; agents-sdk is not a runtime dependency here.
 
+## Architecture (Mermaid)
+
+```mermaid
+flowchart TB
+    subgraph clients["Clients"]
+        WEB["Web / mobile apps"]
+        NB["CLI / notebooks / Docker"]
+        AI["MCP hosts\n(Claude / Cursor)"]
+    end
+
+    subgraph appwrite["Appwrite Cloud or self-hosted"]
+        AUTH["Auth + Sessions"]
+        RT["Realtime\n(TablesDB channels)"]
+        TDB["TablesDB\n(patterns, trees, GJB2, acoustic metadata)"]
+        FN["Functions\n(check_tree, …)"]
+        ST["Storage\n(WAV, diagrams, exports)"]
+        MSG["Topics / Messaging\n(optional alerts)"]
+    end
+
+    subgraph edge["MCORE edge — this repo"]
+        MCP["mcore-mcp\n(FastMCP)"]
+        SDK["mcore_appwrite\n(Python SDK)"]
+    end
+
+    subgraph core["Core library — always local-capable"]
+        M1["mcore_1\nDNA + bisection + NodeResult API"]
+        MP["mcore_py\nalgebra, checker, overlays, audio, TME"]
+    end
+
+    WEB --> AUTH
+    WEB --> TDB
+    WEB --> RT
+    NB --> MP
+    NB --> M1
+    AI --> MCP
+    MCP --> MP
+    MCP --> M1
+    MCP --> SDK
+    SDK --> TDB
+    SDK --> FN
+    SDK --> ST
+    FN --> M1
+    FN --> MP
+    MCP -. optional delegate .-> FN
+```
+
 ## Text diagram
 
 ```
@@ -61,7 +107,7 @@ This document describes how the **mcore-1** repository layers **Appwrite** (auth
 | `src/mcore_py/` | Core algebra, checker, overlays, TME — **unchanged contract** |
 | `src/mcore_1/` | DNA carry encoder, bisection tree, `check_tree` / `check_deletion` API |
 | `src/mcore_mcp/` | FastMCP server, optional Appwrite + PostHog wiring |
-| `sdk/python/mcore_appwrite/` | Small typed helpers (client factory, function execution) |
+| `src/mcore_appwrite/` | Admin client + Function execution helpers |
 | `functions/` | Appwrite Function source (one folder per function) |
 | `appwrite/` | Example `appwrite.config.json`, table snippets, deploy notes |
 | `docs/` | This file, schema, setup, migration, deployment |
@@ -82,7 +128,7 @@ This document describes how the **mcore-1** repository layers **Appwrite** (auth
 ## Related docs
 
 - [APPWRITE_DATABASE_SCHEMA.md](./APPWRITE_DATABASE_SCHEMA.md)
-- [APPWRITE_SETUP.md](./APPWRITE_SETUP.md)
+- [APPWRITE_QUICKSTART.md](./APPWRITE_QUICKSTART.md) — one-command local + deploy flows
 - [APPWRITE_DEPLOYMENT.md](./APPWRITE_DEPLOYMENT.md)
 - [MIGRATION_APPWRITE.md](./MIGRATION_APPWRITE.md)
 - [HANDOFF_TO_GJB2.md](../HANDOFF_TO_GJB2.md)

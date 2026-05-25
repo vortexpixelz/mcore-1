@@ -2,6 +2,17 @@
 
 Serverless entry that mirrors the stable **`mcore_1.check_tree`** API and DNA carry encoding (`dna_to_trits`). Intended for high-throughput clients; the MCP server can delegate here when `APPWRITE_FUNCTION_CHECK_TREE_ID` is set.
 
+## Automated bundle (repo root)
+
+From the repository root:
+
+```bash
+./scripts/package_check_tree_bundle.sh
+```
+
+This writes **`.build/check_tree_deploy.zip`**, which you upload as a new
+Function deployment (Console or `appwrite` CLI, depending on version).
+
 ## Build layout (critical)
 
 Appwrite deployment archives **only this folder** by default. The Python handler imports `mcore_1` and `mcore_py`, so you must vendor sources **into the deployment bundle**:

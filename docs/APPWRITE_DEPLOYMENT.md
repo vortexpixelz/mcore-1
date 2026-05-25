@@ -1,10 +1,18 @@
 # Deployment: Docker + Appwrite
 
+## One-command flows
+
+See **[APPWRITE_QUICKSTART.md](./APPWRITE_QUICKSTART.md)** for:
+
+- `uv sync` + MCP Inspector (`./scripts/mcp_dev.sh`)
+- Function zip build (`./scripts/package_check_tree_bundle.sh`)
+- Push helper (`./scripts/deploy_appwrite_function.sh`)
+
 ## Local library and tests (unchanged)
 
 ```bash
-python3 -m pip install -e ".[dev]"
-python3 -m pytest -q
+uv sync --extra dev --extra analysis
+uv run pytest -q
 ```
 
 ## Dockerfile (tests / CI)
@@ -27,13 +35,9 @@ Appwrite uploads a **deployment artifact** per function. The `check_tree` functi
 
 - `src/main.py` (handler)
 - `requirements.txt`
-- **`src/mcore_py/`** and **`src/mcore_1/`** (copy into the artifact root, or install from a Git tarball in `commands`)
+- **`mcore_src/mcore_py/`** and **`mcore_src/mcore_1/`** (see `functions/check_tree/README.md`)
 
-Recommended CI job (outline):
-
-1. `rsync -a src/mcore_py src/mcore_1 functions/check_tree/bundle/src/`
-2. `cd functions/check_tree/bundle && zip -r ../deploy.zip .`
-3. `appwrite functions create-deployment --function-id ... --code deploy.zip` (see current CLI flags in your CLI version)
+Use **`./scripts/package_check_tree_bundle.sh`** from the repo root to produce `.build/check_tree_deploy.zip`.
 
 Alternatively, publish **`mcore-py`** to a private package index and `pip install mcore-py==...` in the function `commands` step.
 
@@ -44,15 +48,14 @@ If you run **mcore-mcp** as a sidecar HTTP service in Kubernetes:
 ```dockerfile
 FROM python:3.12-slim AS base
 WORKDIR /app
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md uv.lock ./
 COPY src ./src
-RUN pip install --no-cache-dir -e ".[appwrite]"
-COPY src/mcore_mcp ./src/mcore_mcp
+RUN pip install --no-cache-dir -e ".[mcp]"
 ENV PYTHONUNBUFFERED=1
-CMD ["python", "-m", "mcore_mcp.server", "--transport", "http", "--host", "0.0.0.0", "--port", "8765"]
+CMD ["python", "-m", "mcore_mcp.server", "--transport", "streamable-http", "--host", "0.0.0.0", "--port", "8765"]
 ```
 
-> The `mcore_mcp.server` CLI flags follow FastMCP’s `run()` options; adjust to your FastMCP version.
+> Use `streamable-http` per FastMCP; flags may vary slightly by version.
 
 ## HANDOFF_TO_GJB2 integration
 

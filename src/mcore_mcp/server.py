@@ -24,6 +24,7 @@ from fastmcp import FastMCP
 from mcore_1.check_tree import check_deletion, check_tree
 from mcore_1.encoder import dna_to_trits
 from mcore_mcp import analytics
+from mcore_mcp import overlay_tools as ot
 from mcore_mcp.delegate import delegate_check_tree
 from mcore_py.algebra import OVERFLOW, enumerate_patterns, trit_add_seq
 from mcore_py.checker import check_tree as check_constituent_tree
@@ -33,8 +34,9 @@ from mcore_py.model import Budget, Constituent, Level, ProsodicUnit, Trit
 mcp = FastMCP(
     "MCORE-1",
     instructions=(
-        "Metrical conservation (mcore_py), DNA carry + bisection trees (mcore_1). "
-        "Tools mirror CLI capabilities plus stable check_tree / check_deletion APIs."
+        "Metrical conservation (mcore_py), DNA carry + bisection trees (mcore_1), "
+        "methylation + quantum overlays, Gaussian phonon (acoustic) summaries, "
+        "and Base64-TME. Optional Appwrite Function delegation via env vars."
     ),
 )
 
@@ -247,6 +249,129 @@ def mcore_appwrite_exec_check_tree(body_json: str) -> dict[str, Any]:
         return out
     except Exception as e:  # noqa: BLE001
         analytics.capture_mcp_exception("mcore_appwrite_exec_check_tree", e)
+        raise
+
+
+@mcp.tool(name="mcore_methylation_island_check")
+def mcore_methylation_island_check(
+    betas: list[float],
+    labels: list[str] | None = None,
+    island_label: str = "mcp_island",
+) -> dict[str, Any]:
+    """Run conservation check on a CpG island built from methylation beta values."""
+    try:
+        out = ot.methylation_island_check(betas, labels=labels, island_label=island_label)
+        analytics.capture_mcp_tool(
+            "mcore_methylation_island_check",
+            properties={"ok": out["valid"], "n": len(betas)},
+        )
+        return out
+    except Exception as e:  # noqa: BLE001
+        analytics.capture_mcp_exception("mcore_methylation_island_check", e)
+        raise
+
+
+@mcp.tool(name="mcore_quantum_frame_check")
+def mcore_quantum_frame_check(
+    fidelities: list[float],
+    labels: list[str] | None = None,
+    frame_label: str | None = "mcp_frame",
+) -> dict[str, Any]:
+    """Run conservation check on a quantum scheduling frame from per-qubit fidelities."""
+    try:
+        out = ot.quantum_frame_check(fidelities, labels=labels, frame_label=frame_label)
+        analytics.capture_mcp_tool(
+            "mcore_quantum_frame_check",
+            properties={"ok": out["valid"], "n": len(fidelities)},
+        )
+        return out
+    except Exception as e:  # noqa: BLE001
+        analytics.capture_mcp_exception("mcore_quantum_frame_check", e)
+        raise
+
+
+@mcp.tool(name="mcore_quantum_decoherence_trajectory")
+def mcore_quantum_decoherence_trajectory(
+    fidelities: list[float],
+    steps: int = 5,
+    decay_rate: float = 0.05,
+) -> dict[str, Any]:
+    """Simulate fidelity decay and return qubit state names per timestep."""
+    try:
+        out = ot.quantum_decoherence_trajectory(
+            fidelities, steps=steps, decay_rate=decay_rate
+        )
+        analytics.capture_mcp_tool("mcore_quantum_decoherence_trajectory", properties={})
+        return out
+    except Exception as e:  # noqa: BLE001
+        analytics.capture_mcp_exception("mcore_quantum_decoherence_trajectory", e)
+        raise
+
+
+@mcp.tool(name="mcore_methylation_decoherence_trajectory")
+def mcore_methylation_decoherence_trajectory(
+    betas: list[float],
+    steps: int = 5,
+    drift_rate: float = 0.05,
+) -> dict[str, Any]:
+    """Simulate beta drift and return methylation state names per timestep."""
+    try:
+        out = ot.methylation_decoherence_trajectory(betas, steps=steps, drift_rate=drift_rate)
+        analytics.capture_mcp_tool("mcore_methylation_decoherence_trajectory", properties={})
+        return out
+    except Exception as e:  # noqa: BLE001
+        analytics.capture_mcp_exception("mcore_methylation_decoherence_trajectory", e)
+        raise
+
+
+@mcp.tool(name="mcore_pattern_to_base64tme")
+def mcore_pattern_to_base64tme(pattern: str) -> dict[str, Any]:
+    """Encode a metrical pattern to a Base64-TME opcode stream."""
+    try:
+        out = ot.pattern_to_base64tme(pattern)
+        analytics.capture_mcp_tool(
+            "mcore_pattern_to_base64tme",
+            properties={"n_opcodes": out["n_opcodes"]},
+        )
+        return out
+    except Exception as e:  # noqa: BLE001
+        analytics.capture_mcp_exception("mcore_pattern_to_base64tme", e)
+        raise
+
+
+@mcp.tool(name="mcore_acoustic_phonon_synthesis_summary")
+def mcore_acoustic_phonon_synthesis_summary(
+    trits: list[int],
+    normalise: bool = True,
+    max_atoms: int = 512,
+) -> dict[str, Any]:
+    """Summarise Gabor phonon synthesis for a trit list (requires numpy)."""
+    try:
+        out = ot.acoustic_phonon_synthesis_summary(
+            trits, normalise=normalise, max_atoms=max_atoms
+        )
+        analytics.capture_mcp_tool(
+            "mcore_acoustic_phonon_synthesis_summary",
+            properties={"n_atoms": out["n_atoms"]},
+        )
+        return out
+    except Exception as e:  # noqa: BLE001
+        analytics.capture_mcp_exception("mcore_acoustic_phonon_synthesis_summary", e)
+        raise
+
+
+@mcp.tool(name="mcore_acoustic_atom_roundtrip_fft")
+def mcore_acoustic_atom_roundtrip_fft(trits: list[int], max_atoms: int = 64) -> dict[str, Any]:
+    """Per-atom FFT decode roundtrip for ideal phonon wavepackets."""
+    try:
+        out = ot.acoustic_atom_roundtrip_fft(trits, max_atoms=max_atoms)
+        analytics.capture_mcp_tool(
+            "mcore_acoustic_atom_roundtrip_fft",
+            properties={"matches": out["matches"], "len": out["len"]},
+        )
+        return out
+    except Exception as e:  # noqa: BLE001
+        analytics.capture_mcp_exception("mcore_acoustic_atom_roundtrip_fft", e)
         raise
 
 

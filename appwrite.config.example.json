@@ -1,4 +1,5 @@
 {
+  "_comment": "Copy to appwrite.config.json after `appwrite init project`. Full canonical schema: docs/APPWRITE_DATABASE_SCHEMA.md",
   "projectId": "<PROJECT_ID>",
   "endpoint": "https://<REGION>.cloud.appwrite.io/v1",
   "functions": [
@@ -23,26 +24,11 @@
       "enabled": true
     }
   ],
-  "tables": [
-    {
-      "$id": "mcore_sessions",
-      "databaseId": "mcore_main",
-      "name": "MCORE sessions",
-      "enabled": true,
-      "rowSecurity": true,
-      "columns": [
-        { "key": "user_id", "type": "varchar", "size": 36, "required": true },
-        { "key": "name", "type": "varchar", "size": 255, "required": true },
-        { "key": "slug", "type": "varchar", "size": 128, "required": false },
-        { "key": "settings", "type": "mediumtext", "required": false }
-      ],
-      "indexes": [{ "key": "user_created", "type": "key", "columns": ["user_id", "$createdAt"] }]
-    }
-  ],
+  "tables": [],
   "buckets": [
     {
       "$id": "mcore_artifacts",
-      "name": "TME exports and tree diagrams",
+      "name": "TME exports, tree diagrams, WAV sonifications",
       "enabled": true,
       "maximumFileSize": 33554432,
       "allowedFileExtensions": ["json", "png", "svg", "pdf", "txt", "wav"],

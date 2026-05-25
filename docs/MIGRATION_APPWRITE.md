@@ -1,5 +1,8 @@
 # Migrating local patterns and GJB2 trees to Appwrite
 
+See **[APPWRITE_QUICKSTART.md](./APPWRITE_QUICKSTART.md)** for environment and
+CLI shortcuts. This page is data-shape guidance only.
+
 ## Principles
 
 1. **Library first** — reproduce outputs locally with `mcore_1` / `mcore_py`, then upsert rows so Appwrite is a **cache + collaboration** layer.

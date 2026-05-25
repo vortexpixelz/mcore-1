@@ -31,6 +31,7 @@ mcp = [
     "fastmcp>=2.3",
     "appwrite>=6.1",
     "posthog>=3.7",
+    "numpy>=1.24",
 ]
 notebook = ["jupyter", "matplotlib"]
 analysis = [
