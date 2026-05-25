@@ -20,9 +20,26 @@ If the build log shows **`torch==`**, **`jupyter`**, **`scipy==1.17.1`**, etc., 
 
 **Correct:** only `functions/check_tree/requirements.txt` is used (small set: `numpy`, `appwrite`, `posthog`).
 
-**Workaround if you must deploy from repo root:** set the build command to  
-`pip install -r functions/check_tree/requirements.txt`  
-and ensure **Entrypoint** still points at the handler under `functions/check_tree/` (e.g. `functions/check_tree/src/main.py` from repo root — depends on Appwrite version; prefer **narrow deployment directory** instead).
+### Git “Root directory” / deployment path (critical)
+
+In the Console this field is often labeled **Root directory** or **Deployment directory**.
+
+It must point at the **folder that exists in Git**, not the function `$id`:
+
+| Wrong (no such folder in this repo) | Correct |
+|-------------------------------------|--------|
+| `/functions/mcore_check_tree` | **`functions/check_tree`** |
+
+The Appwrite function **name / ID** can still be `mcore_check_tree`; only the **Git path** must match the repo: **`functions/check_tree`** (contains `requirements.txt` and `src/main.py`).
+
+If pip says **`No such file or directory: 'requirements.txt'`**, the root directory is wrong or the branch does not yet contain `functions/check_tree/requirements.txt` (merge your PR to `main` first).
+
+### Execute / entrypoint (Python)
+
+This repo’s handler lives at **`src/main.py`** (function `main(context)` for Appwrite).
+
+- Prefer the Console’s **Entrypoint** field set to **`src/main.py`** (if shown).
+- If there is a separate **Execute command** and it is set to **`python main.py`**, that is **incorrect** for this layout (there is no `main.py` in the function root). Clear it to use the default runtime launcher, **or** set it only if your Open Runtimes docs require something like invoking `src/main.py` explicitly.
 
 After changing it, create a **new deployment** (Git or manual zip).
 

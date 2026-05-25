@@ -53,7 +53,7 @@ Prerequisites: `appwrite login`, `appwrite init project`, function `$id` created
 
 **Build command in Console:** `pip install -r requirements.txt` (see `functions/check_tree/README.md`).
 
-**Deployment directory:** must be **`functions/check_tree`** only. If the build log mentions **`torch`** or **`jupyter`**, the wrong `requirements.txt` (repo root) is being used — fix the deployment directory, then redeploy.
+**Deployment directory:** must be **`functions/check_tree`** (Git path in this repo — **not** `functions/mcore_check_tree`; the function *id* can still be `mcore_check_tree`). If pip cannot open `requirements.txt`, the root path or branch is wrong.
 
 ```bash
 export APPWRITE_FUNCTION_ID="mcore_check_tree"   # your function $id
