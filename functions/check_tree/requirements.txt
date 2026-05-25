@@ -1,0 +1,7 @@
+# Appwrite Function: mcore_check_tree
+# Console Build command MUST be:  pip install -r requirements.txt
+# (Bare "pip install" fails with: You must give at least one requirement to install)
+
+numpy>=1.24
+appwrite>=6.0
+posthog>=3.7,<4
