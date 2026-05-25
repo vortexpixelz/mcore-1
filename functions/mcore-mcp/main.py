@@ -12,6 +12,21 @@ import traceback
 from typing import Any
 
 
+def _header_get(context, name: str) -> str | None:  # noqa: ANN001
+    """Read request header; Open Runtimes use lowercase keys (Appwrite docs)."""
+    headers = getattr(context.req, "headers", None)
+    if not headers:
+        return None
+    key = name.lower()
+    if isinstance(headers, dict):
+        return headers.get(key) or headers.get(name)
+    getter = getattr(headers, "get", None)
+    if callable(getter):
+        v = getter(key)
+        return v if v is not None else getter(name)
+    return None
+
+
 def _execution_response(execution: Any) -> tuple[Any, Any]:
     if isinstance(execution, dict):
         return execution.get("responseBody"), execution.get("responseStatusCode")
@@ -20,17 +35,33 @@ def _execution_response(execution: Any) -> tuple[Any, Any]:
     return rb, sc
 
 
-def _forward_to_check_tree(body: dict[str, Any]) -> tuple[dict[str, Any], int]:
+def _forward_to_check_tree(context, body: dict[str, Any]) -> tuple[dict[str, Any], int]:  # noqa: ANN001
+    """Call check_tree using Appwrite SDK.
+
+    When this handler runs **inside** Appwrite, prefer the per-execution **dynamic
+    API key** from ``x-appwrite-key`` and ``APPWRITE_FUNCTION_PROJECT_ID`` (see
+    Appwrite Functions docs). Otherwise fall back to ``APPWRITE_API_KEY`` /
+    ``APPWRITE_PROJECT_ID`` for local or out-of-band testing.
+    """
     fid = os.environ.get("APPWRITE_FUNCTION_CHECK_TREE_ID", "")
-    endpoint = os.environ.get("APPWRITE_ENDPOINT", "").rstrip("/")
-    project = os.environ.get("APPWRITE_PROJECT_ID", "")
-    key = os.environ.get("APPWRITE_API_KEY", "")
+    endpoint = (
+        os.environ.get("APPWRITE_ENDPOINT", "").rstrip("/")
+        or os.environ.get("APPWRITE_FUNCTION_API_ENDPOINT", "").rstrip("/")
+    )
+    project = (
+        os.environ.get("APPWRITE_FUNCTION_PROJECT_ID", "")
+        or os.environ.get("APPWRITE_PROJECT_ID", "")
+    )
+    key = _header_get(context, "x-appwrite-key") or os.environ.get("APPWRITE_API_KEY", "")
     if not (fid and endpoint and project and key):
         return {
             "error": "missing_env",
             "detail": (
-                "Set APPWRITE_FUNCTION_CHECK_TREE_ID, APPWRITE_ENDPOINT, "
-                "APPWRITE_PROJECT_ID, APPWRITE_API_KEY on this function"
+                "Need APPWRITE_FUNCTION_CHECK_TREE_ID; API endpoint (APPWRITE_ENDPOINT "
+                "or APPWRITE_FUNCTION_API_ENDPOINT); project (APPWRITE_FUNCTION_PROJECT_ID "
+                "or APPWRITE_PROJECT_ID); and auth (x-appwrite-key when running as a "
+                "Function, else APPWRITE_API_KEY). Grant this function scopes to create "
+                "executions on the target function."
             ),
         }, 500
 
@@ -80,9 +111,9 @@ def main(context):  # noqa: ANN001 — Appwrite injects context type
                         result = {"error": "arguments (object) required for tool calls"}
                         status = 400
                     else:
-                        result, status = _forward_to_check_tree(payload)
+                        result, status = _forward_to_check_tree(context, payload)
                 elif "op" in data:
-                    result, status = _forward_to_check_tree(data)
+                    result, status = _forward_to_check_tree(context, data)
                 else:
                     result = {
                         "error": "unsupported_request",
@@ -94,6 +125,7 @@ def main(context):  # noqa: ANN001 — Appwrite injects context type
                     status = 400
     except Exception:  # noqa: BLE001
         context.log(traceback.format_exc())
+        context.error("mcore_mcp_gateway: unhandled exception")
         result = {"error": "internal_error"}
         status = 500
 

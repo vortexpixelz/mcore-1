@@ -22,14 +22,35 @@ The build runs with its **current working directory** set to whatever Appwrite u
 
 ## Environment variables (function scope)
 
-Same project credentials as other server-side callers, plus the **target** function id:
+### Calling `mcore_check_tree` from this function
+
+When this handler runs **as an Appwrite Function**, the executor injects **`x-appwrite-key`** (dynamic API key) and **`APPWRITE_FUNCTION_PROJECT_ID`**. The code prefers those (see Appwrite Functions docs: *Using Appwrite in a function*). You typically **do not** need a static **`APPWRITE_API_KEY`** on the function for production, as long as **Settings → Scopes** grant permission to **create executions** on `mcore_check_tree`.
+
+**Required (you set this):**
+
+| Variable | Purpose |
+|----------|---------|
+| `APPWRITE_FUNCTION_CHECK_TREE_ID` | `$id` of the deployed **check_tree** function (e.g. `mcore_check_tree`) |
+
+**API endpoint** (at least one should resolve):
 
 | Variable | Purpose |
 |----------|---------|
 | `APPWRITE_ENDPOINT` | e.g. `https://<REGION>.cloud.appwrite.io` (with or without `/v1` — handler normalizes) |
-| `APPWRITE_PROJECT_ID` | Project ID |
-| `APPWRITE_API_KEY` | API key with permission to **create executions** on `mcore_check_tree` |
-| `APPWRITE_FUNCTION_CHECK_TREE_ID` | `$id` of the deployed **check_tree** function (e.g. `mcore_check_tree`) |
+| `APPWRITE_FUNCTION_API_ENDPOINT` | Alternative endpoint some runtimes expose |
+
+**Project id** (auto-injected in production; fallbacks for local tests):
+
+| Variable | Purpose |
+|----------|---------|
+| `APPWRITE_FUNCTION_PROJECT_ID` | Preferred when running inside Appwrite |
+| `APPWRITE_PROJECT_ID` | Fallback |
+
+**Static API key (optional):**
+
+| Variable | Purpose |
+|----------|---------|
+| `APPWRITE_API_KEY` | Used only if **`x-appwrite-key`** is missing (e.g. local or non-Appwrite invokes). |
 
 ## Request shapes (POST JSON)
 
