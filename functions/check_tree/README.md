@@ -51,8 +51,11 @@ From the repository root:
 ./scripts/package_check_tree_bundle.sh
 ```
 
-This writes **`.build/check_tree_deploy.zip`**, which you upload as a new
-Function deployment (Console or `appwrite` CLI, depending on version).
+This **vendors** `src/mcore_py` and `src/mcore_1` into **`functions/check_tree/mcore_src/`**
+(Git-visible, so **Git-based Appwrite deployments** include them) and writes
+**`.build/check_tree_deploy.zip`** for manual uploads.
+
+Commit and push **`functions/check_tree/mcore_src/`** after running the script, then redeploy from Appwrite.
 
 ## Build layout (critical)
 

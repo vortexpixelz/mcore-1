@@ -5,8 +5,9 @@
 - **Local MCP (Inspector):**  
   `uv sync --extra dev --extra mcp --extra analysis && ./scripts/mcp_dev.sh`
 
-- **Bundle the `check_tree` Function:**  
-  `./scripts/package_check_tree_bundle.sh`
+- **Bundle + vendor for Git deploy:**  
+  `./scripts/package_check_tree_bundle.sh`  
+  then **commit + push** `functions/check_tree/mcore_src/` so Appwrite Git builds include `mcore_py` / `mcore_1`.
 
 - **Deploy Function (after `appwrite login`, with `APPWRITE_FUNCTION_ID` set):**  
   `export APPWRITE_FUNCTION_ID=mcore_check_tree && ./scripts/deploy_appwrite_function.sh`
