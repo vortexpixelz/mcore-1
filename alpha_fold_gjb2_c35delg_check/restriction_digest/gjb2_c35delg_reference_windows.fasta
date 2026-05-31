@@ -1,20 +1,30 @@
->GJB2_WT_cDNA_window_c25_to_c54 | NM_004004.6 | WT reference | positions c.25-c.54
-ATCCTGGGGGGTGTGAACAAACAGCTCCACC
+>GJB2_WT_cDNA_window_c25_to_c54 | NM_004004.6 | WT reference | positions c.25-c.54 | 30 nt
+ATCCTGGGGGGTGTGAACAAACACTCCACC
 
->GJB2_c35delG_cDNA_window | NM_004004.6 | c.35del mutant | 1G deleted from run of 6G
-ATCCTGGGGGTGTGAACAAACAGCTCCACC
+>GJB2_c35delG_cDNA_window | NM_004004.6 | c.35del mutant | 1G deleted from run of 6G | 29 nt
+ATCCTGGGGGTGTGAACAAACACTCCACC
 
->GJB2_WT_extended_context | NM_004004.6 | WT | broader PCR-amplifiable window (c.1-c.54)
-ATGGATTGGGGCACGCTGCAGACGATCCTGGGGGGTGTGAACAAACAGCTCCACC
+>GJB2_WT_extended_context | NM_004004.6 | WT | c.1-c.54 | 54 nt
+; Translates: MDWGTLQTILGGVNKHST
+ATGGATTGGGGCACGCTGCAGACGATCCTGGGGGGTGTGAACAAACACTCCACC
 
->GJB2_c35delG_extended_context | NM_004004.6 | c.35del mutant | broader window
-ATGGATTGGGGCACGCTGCAGACGATCCTGGGGGTGTGAACAAACAGCTCCACC
+>GJB2_c35delG_extended_context | NM_004004.6 | c.35del mutant | 53 nt
+; Translates: MDWGTLQTILGV* (stop at codon 13)
+ATGGATTGGGGCACGCTGCAGACGATCCTGGGGGTGTGAACAAACACTCCACC
 
+; ----------------------------------------------------------------
 ; Codon interpretation at variant site:
-; WT:  ...CTG | GGG | GGT | GTG | AAC...
-;           Leu  Gly  Gly  Val  Asn
-; MUT: ...CTG | GGG | GTG | TGA...
-;           Leu  Gly  Val  STOP
 ;
-; The deletion removes one G from the run GGGGGG at c.30-c.35.
-; Reading frame shifts at codon 12 (Gly->Val), immediate stop = p.Gly12Valfs*2.
+; WT:  ... CTG | GGG | GGT | GTG | AAC | AAA | CAC | TCC ...
+;           Leu   Gly   Gly   Val   Asn   Lys   His   Ser
+;           aa10  aa11  aa12  aa13  aa14  aa15  aa16  aa17
+;
+; MUT: ... CTG | GGG | GTG | TGA
+;           Leu   Gly   Val   STOP
+;           aa10  aa11  aa12
+;
+; The deletion removes one G from the homopolymer run GGGGGG (c.30-c.35).
+; Reading frame shifts at codon 12 (Gly->Val), stop at codon 13.
+; Protein consequence: p.Gly12Valfs*2
+; Final peptide: MDWGTLQTILGV (12 aa)
+; ----------------------------------------------------------------

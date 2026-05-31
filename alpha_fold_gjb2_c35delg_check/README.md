@@ -10,7 +10,7 @@
 | Transcript | NM_004004.6 |
 | Variant (HGVS nucleotide) | **c.35del** (commonly written c.35delG) |
 | Protein consequence | **p.Gly12Valfs\*2** |
-| ClinVar classification | Pathogenic / Likely Pathogenic |
+| ClinVar classification | Reported pathogenic; verify exact c.35del accession before citation |
 | Phenotype | Autosomal recessive non-syndromic sensorineural hearing loss (DFNB1) |
 
 > **⚠️ ClinVar / ClinGen source:** The exact c.35delG accession must be independently verified before citation.  
@@ -69,32 +69,27 @@ MDWGTLQTILGV
 Job name: GJB2_c35delG_pGly12ValfsTer2
 num_recycle: 3
 use_amber: true
-use_templates: false  (no template will match a 12-aa peptide)
+use_templates: false
 ```
 
 ### Option B: AlphaFold Server (alphafoldserver.com)
 
-Go to https://alphafoldserver.com, create a new job, paste each sequence above.  
-The server accepts raw single-letter amino acid sequences without the FASTA header.
+Go to https://alphafoldserver.com, create a new job, paste each sequence above.
 
 ### Option C: Pre-computed WT Structure
 
-The AlphaFold DB already has a high-confidence prediction for P29033:  
-https://alphafold.ebi.ac.uk/entry/P29033  
-No need to re-run the WT if you only want a reference structure.
+https://alphafold.ebi.ac.uk/entry/P29033
 
 ---
 
 ## Experimental Reference
 
 **PDB 2ZW3** — Human Connexin-26 gap-junction channel, resolved at **3.5 Å** by X-ray diffraction.  
-Download: https://www.rcsb.org/structure/2ZW3  
-This is the gold-standard experimental comparator for the WT AlphaFold model.  
-The 2ZW3 structure shows the full hexameric hemichannel with four transmembrane helices (TM1–TM4), two extracellular loops (EL1, EL2), and cytoplasmic N-/C-termini.
+Download: https://www.rcsb.org/structure/2ZW3
 
-**Expected AlphaFold WT result:** A membrane-protein-like fold consistent with 2ZW3 topology — four TM helices, plDDT high in TM regions, lower in unstructured cytoplasmic loops.
+**Expected AlphaFold WT result:** Four TM helices, plDDT high in TM regions, consistent with 2ZW3 topology.
 
-**Expected AlphaFold mutant result:** A disordered 12-aa peptide with low plDDT throughout. No TM topology. This is the correct structural conclusion: **the variant does not produce a remodeled Connexin-26; it produces no functional Connexin-26 at all.**
+**Expected AlphaFold mutant result:** Disordered 12-aa peptide, low plDDT throughout. No TM topology. The variant does not produce a remodeled Connexin-26; it produces no functional Connexin-26.
 
 ---
 
@@ -106,9 +101,9 @@ The pathogenicity of c.35delG / p.Gly12Valfs*2 is established by:
 1. **ClinVar** — search `NM_004004.6(GJB2):c.35del` and verify accession before citing
 2. **ClinGen Hearing Loss VCEP** — expert curated classification
 3. **Kelsell et al., Nature 1997** — original GJB2 linkage to DFNB1
-4. **Population frequency**: ~3% carrier frequency in European populations; most common single cause of congenital deafness worldwide
+4. **Population frequency**: ~3% carrier frequency in European populations
 
-AlphaFold here serves as **visual/structural illustration only**: it demonstrates that the variant produces a truncated stub rather than a full-length protein, consistent with the clinical mechanism (loss of functional gap-junction protein → disrupted endocochlear K⁺ recycling → sensorineural hearing loss).
+AlphaFold here serves as **visual/structural illustration only**.
 
 ---
 
@@ -118,7 +113,7 @@ AlphaFold here serves as **visual/structural illustration only**: it demonstrate
 
 The MCORE-1 project uses GJB2 c.35delG as a test case for an encoding hypothesis. In the MCORE-1 trit-tree representation of the 681-nucleotide GJB2 CDS, a deletion at position k=35 is predicted to produce a step-function CONSERVATION error profile (Theorem 1, Algebraic Carry Cascade). Empirical measurements on the encoded sequence are consistent with this prediction.
 
-This is a property of the MCORE-1 encoding — not a property of the cochlea, the protein, or the clinical variant. The structural connection (the gene whose loss causes deafness is tested by a system whose decoder is the auditory pathway) is a noted correspondence, not a causal claim.
+This is a property of the MCORE-1 encoding — not a property of the cochlea, the protein, or the clinical variant.
 
 For MCORE-1 theoretical details see the paper at [github.com/vortexpixelz/mcore-1](https://github.com/vortexpixelz/mcore-1).
 
@@ -129,15 +124,15 @@ For MCORE-1 theoretical details see the paper at [github.com/vortexpixelz/mcore-
 ```
 alpha_fold_gjb2_c35delg_check/
 ├── README.md                              ← this file
-├── GJB2_WT_P29033.fasta                   ← 226-aa WT sequence (correct ✅)
-├── GJB2_c35delG_pGly12ValfsTer2.fasta     ← 12-aa mutant stub (correct ✅)
-└── visualize_truncation.py                ← length/domain comparison figure
+├── GJB2_WT_P29033.fasta                   ← 226-aa WT sequence ✅
+├── GJB2_c35delG_pGly12ValfsTer2.fasta     ← 12-aa mutant stub ✅
+├── visualize_truncation.py                ← length/domain comparison figure
+└── restriction_digest/                    ← DNA-level RFLP/dCAPS lane
 ```
 
 ## References
 
-- Kelsell DP et al. Connexin 26 mutations in hereditary non-syndromic sensorineural deafness. *Nature* 1997;387:80–83.
-- Unger VM et al. Three-dimensional structure of a recombinant gap junction membrane channel. *Science* 1999;283:1176–1180.
-- Maeda S et al. Structure of the connexin 26 gap junction channel at 3.5 Å resolution. *Nature* 2009;458:597–602. (PDB: 2ZW3)
+- Kelsell DP et al. *Nature* 1997;387:80–83.
+- Maeda S et al. *Nature* 2009;458:597–602. (PDB: 2ZW3)
 - AlphaFold DB entry P29033: https://alphafold.ebi.ac.uk/entry/P29033
 - ClinVar search (verify accession): https://www.ncbi.nlm.nih.gov/clinvar/?term=NM_004004.6(GJB2):c.35del

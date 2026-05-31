@@ -31,12 +31,20 @@ Clinical lane       Verified ClinVar/ClinGen/literature accession
 The GJB2 CDS contains a homopolymer run of **six consecutive G nucleotides** at positions c.30–c.35. The c.35del removes one G from this run.
 
 ```
-WT  genomic/cDNA context (c.28–c.45):
-  ... CTG | GGG | GGT | GTG | AAC ...
-       Leu   Gly   Gly   Val   Asn
-       aa10  aa11  aa12  aa13  aa14
+WT  (c.1-c.54, 54 nt):
+ATGGATTGGGGCACGCTGCAGACGATCCTGGGGGGTGTGAACAAACACTCCACC
+Translates: MDWGTLQTILGGVNKHST
 
-c.35delG mutant context (frame-shifted from aa12):
+  Codon view around variant:
+  ... CTG | GGG | GGT | GTG | AAC | AAA | CAC | TCC ...
+       Leu   Gly   Gly   Val   Asn   Lys   His   Ser
+       aa10  aa11  aa12  aa13  aa14  aa15  aa16  aa17
+
+c.35delG mutant (53 nt):
+ATGGATTGGGGCACGCTGCAGACGATCCTGGGGGTGTGAACAAACACTCCACC
+Translates: MDWGTLQTILGV* (stop at codon 13)
+
+  Codon view after deletion:
   ... CTG | GGG | GTG | TGA
        Leu   Gly   Val   STOP
        aa10  aa11  aa12
@@ -51,14 +59,29 @@ c.35delG mutant context (frame-shifted from aa12):
 
 ---
 
+## Sequence Assertions (Machine-Checkable)
+
+The digest script enforces these assertions on startup and will hard-fail if any sequence is wrong:
+
+```python
+assert len(WT)  == 54
+assert len(MUT) == 53
+assert str(Seq(WT).translate())  == "MDWGTLQTILGGVNKHST"
+assert str(Seq(MUT).translate()).split("*")[0] == "MDWGTLQTILGV"
+```
+
+These serve as an **executable certificate**: if the sequences drift in a future edit, the script catches it immediately.
+
+---
+
 ## The RFLP Principle
 
-Restriction Fragment Length Polymorphism (RFLP) genotyping works as follows:
+Restriction Fragment Length Polymorphism (RFLP) genotyping:
 
 1. PCR-amplify the genomic region spanning c.35
 2. Digest the PCR product with a restriction enzyme
 3. Run on gel or capillary electrophoresis
-4. Alleles are distinguished by **different fragment sizes**
+4. Alleles distinguished by **different fragment sizes**
 
 This only works cleanly if the variant **creates or destroys a restriction site**.
 
@@ -66,39 +89,37 @@ This only works cleanly if the variant **creates or destroys a restriction site*
 
 Run `gjb2_c35delg_digest_scan.py` to check all commercially available (CommOnly) restriction enzymes against both allele windows.
 
-**The scan compares:**
-- WT: `ATGGATTGGGGCACGCTGCAGACGATCCTGGGGGGTGTGAACAAACAGCTCCACC`
-- MUT: `ATGGATTGGGGCACGCTGCAGACGATCCTGGGGGTGTGAACAAACAGCTCCACC` *(c.35 deleted)*
+### Expected Result: No Natural Site
 
-### If No Natural Site Exists → dCAPS
+The c.35del is a **1-bp deletion in a poly-G homopolymer run** (`GGGGGG` → `GGGGG`). Most commercial enzymes do not recognize poly-G sequences, so the scan is expected to return **zero discriminating enzymes**. This is the correct result — not a script failure.
 
-The c.35del is a 1-bp deletion in a homopolymer run. Natural enzyme sites in this region are unlikely to discriminate perfectly because:
-- Many enzymes don't recognize poly-G sequences
-- A 1-nt size difference in PCR fragments is technically challenging to resolve
+### If No Natural Site → dCAPS
 
-If the scan returns no discriminating enzymes, the correct next step is **dCAPS** (derived Cleaved Amplified Polymorphic Sequence):
+dCAPS (derived Cleaved Amplified Polymorphic Sequence):
 
-1. **Design a mismatched primer** near c.35 that introduces 1–2 intentional mismatches
-2. The mismatch, combined with either the WT or mutant sequence, **creates a clean restriction site** in one allele but not the other
-3. Tools: [dCAPS Finder 2.0](http://helix.wustl.edu/dcaps/dcaps.html) or [Primer3Plus with NEBcutter]
+1. **Design a mismatched primer** near c.35 with 1–2 intentional mismatches
+2. The mismatch, combined with WT or mutant sequence, **creates a clean restriction site** in exactly one allele
+3. PCR + digest + gel = clean two-band discrimination
+
+Tools:
+- [dCAPS Finder 2.0](http://helix.wustl.edu/dcaps/dcaps.html)
+- [NEBcutter v3](https://nc3.neb.com/NEBcutter/)
 
 > ⚠️ Do not claim a validated diagnostic restriction assay from this in-silico scan alone.  
-> Validated RFLP/dCAPS assays require wet-lab confirmation (restriction digest + gel + sequencing of digestion products).
+> Validated RFLP/dCAPS assays require wet-lab confirmation.
 
 ---
 
 ## Running the Script
 
 ```bash
-# Install dependency
 pip install biopython
-
-# Run scan
 cd alpha_fold_gjb2_c35delg_check/restriction_digest/
 python gjb2_c35delg_digest_scan.py
 ```
 
 **Outputs:**
+- `✅ All sequence assertions passed` (or hard fail with exact mismatch shown)
 - Console: allele-discriminating enzyme table (or dCAPS recommendation)
 - `gjb2_digest_allele_diff.tsv`: full enzyme × cut-position table
 - `gjb2_digest_summary.txt`: human-readable summary
@@ -114,8 +135,6 @@ python gjb2_c35delg_digest_scan.py
 | Sanger sequencing | Exact nucleotide change | Low–medium | Medium |
 | NGS panel | Full GJB2 coding region | High | Medium–high |
 
-For population-scale carrier screening of c.35delG specifically, RFLP or dCAPS historically provided fast, cheap genotyping before NGS became routine. The scan here reconstructs that logic in silico.
-
 ---
 
 ## Clinical Disclaimer
@@ -123,7 +142,7 @@ For population-scale carrier screening of c.35delG specifically, RFLP or dCAPS h
 - This folder contains **research / educational in-silico analysis only**
 - Clinical diagnosis of GJB2-related hearing loss requires validated laboratory testing
 - ClinVar accession for c.35del: **verify independently** at https://www.ncbi.nlm.nih.gov/clinvar/?term=NM_004004.6(GJB2):c.35del
-- Do not use this script output as clinical evidence
+- Do not use script output as clinical evidence
 
 ---
 
@@ -132,14 +151,14 @@ For population-scale carrier screening of c.35delG specifically, RFLP or dCAPS h
 ```
 restriction_digest/
 ├── README.md                              ← this file
-├── gjb2_c35delg_digest_scan.py            ← BioPython in-silico digest
-└── gjb2_c35delg_reference_windows.fasta  ← WT and mutant DNA windows
+├── gjb2_c35delg_digest_scan.py            ← BioPython in-silico digest (with hard assertions)
+└── gjb2_c35delg_reference_windows.fasta  ← WT and mutant DNA windows (verified)
 ```
 
 ## References
 
+- Kelsell DP et al. Connexin 26 mutations. *Nature* 1997;387:80–83.
 - Neff MW et al. Use of dCAPS markers. *BioTechniques* 1998.
-- Kelsell DP et al. Connexin 26 mutations in hereditary non-syndromic sensorineural deafness. *Nature* 1997;387:80–83.
 - NEBcutter v3.0: https://nc3.neb.com/NEBcutter/
 - dCAPS Finder 2.0: http://helix.wustl.edu/dcaps/dcaps.html
-- BioPython Restriction module: https://biopython.org/docs/latest/api/Bio.Restriction.html
+- BioPython Restriction: https://biopython.org/docs/latest/api/Bio.Restriction.html
