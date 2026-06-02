@@ -6,6 +6,7 @@ Deployment must include ``mcore_src/mcore_py`` and ``mcore_src/mcore_1`` — see
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 import traceback
@@ -57,80 +58,99 @@ def main(context):  # noqa: ANN001 — Appwrite injects context type
     from mcore_1.check_tree import check_deletion, check_tree
     from mcore_1.encoder import dna_to_trits
 
+    result: dict[str, object]
+
     try:
         if context.req.method == "GET":
-            return context.res.json({"service": "mcore_check_tree", "ok": True})
-
-        data = context.req.body_json
-        if not isinstance(data, dict):
-            return context.res.json({"error": "JSON object body required"}, 400)
-
-        op = data.get("op")
-        if op == "dna_encode":
-            dna = data.get("dna")
-            if not isinstance(dna, str) or not dna:
-                return context.res.json({"error": "dna (non-empty string) required"}, 400)
-            trits, log = dna_to_trits(dna)
-            out = {
-                "trits": trits,
-                "log": [asdict(s) for s in log],
-            }
-            _posthog_capture(
-                "appwrite_function_check_tree",
-                {"op": op, "dna_length": len(dna)},
-            )
-            return context.res.json(out)
-
-        if op == "check_tree_weights":
-            weights = data.get("weights")
-            if not isinstance(weights, list):
-                return context.res.json({"error": "weights (list[int]) required"}, 400)
-            depth = data.get("depth")
-            d: int | None = None if depth is None else int(depth)
-            nodes = check_tree([int(w) for w in weights], depth=d)
-            _posthog_capture(
-                "appwrite_function_check_tree",
-                {"op": op, "n": len(weights), "all_valid": all(n.valid for n in nodes)},
-            )
-            return context.res.json({"nodes": _node_results_to_json(nodes)})
-
-        if op == "check_tree_dna":
-            dna = data.get("dna")
-            if not isinstance(dna, str) or not dna:
-                return context.res.json({"error": "dna (non-empty string) required"}, 400)
-            depth = data.get("depth")
-            d = None if depth is None else int(depth)
-            trits, _log = dna_to_trits(dna)
-            nodes = check_tree(trits, depth=d)
-            _posthog_capture(
-                "appwrite_function_check_tree",
-                {"op": op, "n": len(trits), "all_valid": all(n.valid for n in nodes)},
-            )
-            return context.res.json({"trits": trits, "nodes": _node_results_to_json(nodes)})
-
-        if op == "check_deletion":
-            wt = data.get("weights_wt")
-            mut = data.get("weights_mut")
-            k = data.get("deletion_pos_1")
-            if not isinstance(wt, list) or not isinstance(mut, list):
-                return context.res.json(
-                    {"error": "weights_wt and weights_mut (lists) required"}, 400
-                )
-            if not isinstance(k, int):
-                return context.res.json({"error": "deletion_pos_1 (int) required"}, 400)
-            nodes = check_deletion([int(x) for x in wt], [int(x) for x in mut], k)
-            _posthog_capture(
-                "appwrite_function_check_tree",
-                {"op": op, "n_wt": len(wt), "all_valid": all(n.valid for n in nodes)},
-            )
-            return context.res.json({"nodes": _node_results_to_json(nodes)})
-
-        return context.res.json({"error": f"unknown op: {op!r}"}, 400)
+            result = {"service": "mcore_check_tree", "ok": True}
+        else:
+            data = context.req.body_json
+            if not isinstance(data, dict):
+                result = {"error": "JSON object body required"}
+            else:
+                op = data.get("op")
+                if op == "dna_encode":
+                    dna = data.get("dna")
+                    if not isinstance(dna, str) or not dna:
+                        result = {"error": "dna (non-empty string) required"}
+                    else:
+                        trits, log = dna_to_trits(dna)
+                        result = {
+                            "trits": trits,
+                            "log": [asdict(s) for s in log],
+                        }
+                        _posthog_capture(
+                            "appwrite_function_check_tree",
+                            {"op": op, "dna_length": len(dna)},
+                        )
+                elif op == "check_tree_weights":
+                    weights = data.get("weights")
+                    if not isinstance(weights, list):
+                        result = {"error": "weights (list[int]) required"}
+                    else:
+                        depth = data.get("depth")
+                        d: int | None = None if depth is None else int(depth)
+                        nodes = check_tree([int(w) for w in weights], depth=d)
+                        _posthog_capture(
+                            "appwrite_function_check_tree",
+                            {
+                                "op": op,
+                                "n": len(weights),
+                                "all_valid": all(n.valid for n in nodes),
+                            },
+                        )
+                        result = {"nodes": _node_results_to_json(nodes)}
+                elif op == "check_tree_dna":
+                    dna = data.get("dna")
+                    if not isinstance(dna, str) or not dna:
+                        result = {"error": "dna (non-empty string) required"}
+                    else:
+                        depth = data.get("depth")
+                        d = None if depth is None else int(depth)
+                        trits, _log = dna_to_trits(dna)
+                        nodes = check_tree(trits, depth=d)
+                        _posthog_capture(
+                            "appwrite_function_check_tree",
+                            {
+                                "op": op,
+                                "n": len(trits),
+                                "all_valid": all(n.valid for n in nodes),
+                            },
+                        )
+                        result = {"trits": trits, "nodes": _node_results_to_json(nodes)}
+                elif op == "check_deletion":
+                    wt = data.get("weights_wt")
+                    mut = data.get("weights_mut")
+                    k = data.get("deletion_pos_1")
+                    if not isinstance(wt, list) or not isinstance(mut, list):
+                        result = {
+                            "error": "weights_wt and weights_mut (lists) required",
+                        }
+                    elif not isinstance(k, int):
+                        result = {"error": "deletion_pos_1 (int) required"}
+                    else:
+                        nodes = check_deletion([int(x) for x in wt], [int(x) for x in mut], k)
+                        _posthog_capture(
+                            "appwrite_function_check_tree",
+                            {
+                                "op": op,
+                                "n_wt": len(wt),
+                                "all_valid": all(n.valid for n in nodes),
+                            },
+                        )
+                        result = {"nodes": _node_results_to_json(nodes)}
+                else:
+                    result = {"error": f"unknown op: {op!r}"}
 
     except ValueError as e:
         _posthog_capture("appwrite_function_check_tree_error", {"kind": "ValueError"})
-        return context.res.json({"error": str(e)}, 400)
+        result = {"error": str(e)}
     except Exception:  # noqa: BLE001
         context.log(traceback.format_exc())
         _posthog_capture("appwrite_function_check_tree_error", {"kind": "internal"})
-        return context.res.json({"error": "internal_error"}, 500)
+        result = {"error": "internal_error"}
+
+    context.log("=== mcore_check_tree result ===")
+    context.log(json.dumps(result, indent=2))
+    # Do not pass HTTP status as 2nd arg — some Open Runtimes drop the body (empty responseBody).
+    return context.res.json(result)

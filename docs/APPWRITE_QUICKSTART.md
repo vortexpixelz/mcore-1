@@ -64,6 +64,18 @@ export APPWRITE_FUNCTION_ID="mcore_check_tree"   # your function $id
 
 If your CLI version does not upload the zip from `push` alone, create a deployment in the Console using `.build/check_tree_deploy.zip` produced by the package script.
 
+## 3b. Optional: MCP gateway Function (`mcore-mcp`)
+
+Second Appwrite function that **forwards** JSON to `mcore_check_tree` (Path A — HTTP tool bridge, not full FastMCP). See **`functions/mcore-mcp/README.md`**.
+
+- **Deployment directory:** **`functions/mcore-mcp`** (must match Git; hyphen in `mcore-mcp`, not `mcore_mcp`)
+- **Build command:** `pip install -r requirements.txt`
+- **Entrypoint:** `main.py`
+
+If pip errors with **`No such file or directory: 'requirements.txt'`**, the deployment root is wrong or the branch does not contain `functions/mcore-mcp/`. Fix the root path, or use `pip install -r functions/mcore-mcp/requirements.txt` and entrypoint `functions/mcore-mcp/main.py` when the build must run from **repo root**.
+
+Set the same `APPWRITE_*` variables on this function, plus **`APPWRITE_FUNCTION_CHECK_TREE_ID`** pointing at your check_tree function’s `$id`. When the gateway runs **as** an Appwrite Function, prefer the injected **`x-appwrite-key`** and **`APPWRITE_FUNCTION_PROJECT_ID`** (see `functions/mcore-mcp/README.md`); grant **Scopes** to create executions on the target function.
+
 ## 4. Point MCP at remote `check_tree`
 
 ```bash

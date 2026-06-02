@@ -34,12 +34,29 @@ The Appwrite function **name / ID** can still be `mcore_check_tree`; only the **
 
 If pip says **`No such file or directory: 'requirements.txt'`**, the root directory is wrong or the branch does not yet contain `functions/check_tree/requirements.txt` (merge your PR to `main` first).
 
+### Vendored `mcore_src/` (critical — missing = runtime crash)
+
+The handler imports **`mcore_1`** from **`mcore_src/`**. If that folder is **missing** from the Git revision Appwrite deploys, the function fails immediately with:
+
+`RuntimeError: mcore_1 not found: vendor src/mcore_1 and src/mcore_py into mcore_src/ ...`
+
+A caller (including **`mcore-mcp`**) may then see **`empty_response_body`** or **`child_function_failed`** because the worker crashes before returning JSON.
+
+**Redeploy checklist**
+
+1. On the branch Appwrite builds, confirm **`functions/check_tree/mcore_src/mcore_1/`** and **`mcore_py/`** exist (run `./scripts/package_check_tree_bundle.sh` from repo root, then **commit + push** any updated copies).
+2. Appwrite **deployment directory** = **`functions/check_tree`**.
+3. Create a **new deployment** after the commit is on the remote branch.
+4. Smoke-test **`mcore_check_tree`** directly in the Console (`{"op":"dna_encode","dna":"ACGT"}`) before relying on the gateway.
+
 ### Execute / entrypoint (Python)
 
 This repo’s handler lives at **`src/main.py`** (function `main(context)` for Appwrite).
 
 - Prefer the Console’s **Entrypoint** field set to **`src/main.py`** (if shown).
 - If there is a separate **Execute command** and it is set to **`python main.py`**, that is **incorrect** for this layout (there is no `main.py` in the function root). Clear it to use the default runtime launcher, **or** set it only if your Open Runtimes docs require something like invoking `src/main.py` explicitly.
+
+**Python response:** use **`return context.res.json(result)`** with a single argument. Passing a second HTTP-status argument to `res.json()` has been reported to produce an **empty `responseBody`** on some Open Runtimes builds; encode errors in the JSON object instead (the handler already uses an `"error"` field).
 
 After changing it, create a **new deployment** (Git or manual zip).
 
