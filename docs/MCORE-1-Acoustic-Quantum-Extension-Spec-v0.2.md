@@ -69,10 +69,10 @@ Targeted epigenetic shift or gene-expression change
 
 ### 2.2 FFT Decoder
 
-- Zero-pad 1 920 samples → 196 608 (× 102) for ~0.24 Hz bin resolution
-- Read magnitude at bins {800, 1 600, 3 200} Hz ± 2-bin window
-- Argmax → trit
-- 100% round-trip accuracy on clean WAVs
+- Zero-pad each 1,920-sample atom to 48,000 samples (`_N_PAD = SR`), giving 1 Hz FFT bin resolution
+- Read magnitude at bins {800, 1,600, 3,200} Hz using a ±2-bin / ±2 Hz local window
+- Argmax over carrier magnitudes → decoded trit
+- 100% round-trip accuracy on clean WAVs in current tests
 
 ### 2.3 Cochlear Tonotopic Filterbank Decoder
 
