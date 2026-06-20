@@ -1,0 +1,34 @@
+{
+  "schema_version": "symonic.funding.v0.1",
+  "updated_at": "2026-06-20T00:00:00Z",
+  "items": [
+    {
+      "name": "DeepMind / Schmidt / ARIA Multi-Agent Safety",
+      "status": "concept_note",
+      "deadline": "2026-08-08T23:59:00-12:00",
+      "primary_work_package": "Perturbation-Divergence Benchmark",
+      "next_action": "Create two-page concept note plus Evidence Relay scenario card"
+    },
+    {
+      "name": "Anthropic Fellows",
+      "status": "researching",
+      "deadline": null,
+      "primary_work_package": "mcore-cascade-eval / trajectory divergence",
+      "next_action": "Draft fellowship answers from PDB abstract and repo receipts"
+    },
+    {
+      "name": "OpenAI safety / research roles",
+      "status": "watchlist",
+      "deadline": null,
+      "primary_work_package": "reasoning stability diagnostics",
+      "next_action": "Map roles to one-page research statement"
+    },
+    {
+      "name": "SAM / SBIR pathway",
+      "status": "infrastructure",
+      "deadline": null,
+      "primary_work_package": "Symonic trust layer + gov-ready research ops",
+      "next_action": "Maintain compliance evidence ledger"
+    }
+  ]
+}
