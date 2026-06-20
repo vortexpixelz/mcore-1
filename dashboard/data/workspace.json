@@ -1,0 +1,41 @@
+{
+  "schema_version": "symonic.workspace.v0.1",
+  "updated_at": "2026-06-20T00:00:00Z",
+  "source": "manual_from_google_admin_screenshots",
+  "domains": [
+    {
+      "domain": "oxquail.com",
+      "role": "primary",
+      "verified": true,
+      "gmail_activated": true
+    },
+    {
+      "domain": "symonic.com",
+      "role": "secondary",
+      "verified": true,
+      "gmail_activated": true
+    }
+  ],
+  "subscriptions": [
+    "Google Workspace Business Plus",
+    "Chrome Enterprise Core",
+    "AI Expanded Access",
+    "Archived User"
+  ],
+  "controls": {
+    "two_step_verification": {
+      "enforced": true,
+      "method_policy": "any",
+      "notes": "Move toward phishing-resistant MFA / passkeys later. Do not change primary domain during mobile setup."
+    }
+  },
+  "users_summary": {
+    "active_seen": 2,
+    "archived_seen": 3,
+    "enrolled_seen": 1,
+    "needs_review": [
+      "active_not_enrolled_account_identity",
+      "archived_user_cleanup_after_drive_gmail_review"
+    ]
+  }
+}
