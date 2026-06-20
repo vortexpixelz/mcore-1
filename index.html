@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCORE-1 · Live Visualizations</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#020810;
+  font-family:'Courier New',monospace;
+  color:#88ccff;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:2rem;
+}
+h1{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:3px;
+  color:#334466;
+  margin-bottom:4px;
+}
+.subtitle{
+  font-size:10px;
+  color:#1e3048;
+  letter-spacing:1.5px;
+  margin-bottom:3rem;
+}
+.cards{
+  display:flex;
+  gap:1.5rem;
+  flex-wrap:wrap;
+  justify-content:center;
+  max-width:780px;
+}
+.card{
+  background:rgba(3,8,24,0.88);
+  border:1px solid #0d1e3d;
+  border-radius:8px;
+  padding:1.5rem 2rem;
+  width:320px;
+  text-decoration:none;
+  color:inherit;
+  transition:border-color .2s, box-shadow .2s;
+  display:block;
+}
+.card:hover{
+  border-color:#3366cc;
+  box-shadow:0 0 24px rgba(0,80,220,.18);
+}
+.card-tag{
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  color:#2a3d5e;
+  margin-bottom:.6rem;
+}
+.card-title{
+  font-size:14px;
+  color:#88ccff;
+  margin-bottom:.5rem;
+  letter-spacing:.5px;
+}
+.card-desc{
+  font-size:10.5px;
+  color:#445566;
+  line-height:1.65;
+}
+.badge{
+  display:inline-block;
+  margin-top:.8rem;
+  font-size:9px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:3px 8px;
+  border:1px solid #1a3366;
+  border-radius:3px;
+  color:#4488bb;
+}
+.footer{
+  margin-top:3rem;
+  font-size:9px;
+  color:#1e2e44;
+  letter-spacing:1.5px;
+  text-align:center;
+  line-height:2;
+}
+.footer a{color:#2a4466;text-decoration:none;}
+.footer a:hover{color:#4488bb;}
+</style>
+</head>
+<body>
+
+<h1>MCORE-1</h1>
+<p class="subtitle">Metrical Core Representation · Live Visualizations</p>
+
+<div class="cards">
+
+  <a class="card" href="game_theory_geometry.html">
+    <div class="card-tag">WebGL · Three.js</div>
+    <div class="card-title">Game Theory Geometry</div>
+    <div class="card-desc">
+      Interactive 3D simplex explorer for replicator dynamics. Drag to orbit,
+      click to launch trajectories, compare RPS, Hawk-Dove, Prisoner's Dilemma,
+      and more. Payoff surface colored by fitness gradient.
+    </div>
+    <span class="badge">27 KB · WebGL</span>
+  </a>
+
+  <a class="card" href="mcore_game_sim.html">
+    <div class="card-tag">Canvas · MCORE-1</div>
+    <div class="card-title">MCORE-1 Game Theory Engine</div>
+    <div class="card-desc">
+      Three linked simulations: Defection Cascade (budget conservation toggle),
+      Trit Population Dynamics (replicator on simplex with Nash markers),
+      and Strategy Tournament (8 trit strategies in round-robin). Trit Nash
+      at (0, ⅓, ⅔) visible in real time.
+    </div>
+    <span class="badge">41 KB · Canvas</span>
+  </a>
+
+</div>
+
+<div class="footer">
+  <a href="https://github.com/vortexpixelz/mcore-1" target="_blank" rel="noopener">vortexpixelz/mcore-1</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/vortexpixelz/mcore-1/blob/main/docs/MCORE-1-v0.1-spec.pdf" target="_blank" rel="noopener">Spec PDF</a>
+  &nbsp;·&nbsp;
+  MIT License
+</div>
+
+</body>
+</html>
