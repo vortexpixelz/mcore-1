@@ -68,7 +68,8 @@ summaries, **Base64-TME**, and optional **Appwrite Function** delegation for
 | **Deploy Function** | `export APPWRITE_FUNCTION_ID=mcore_check_tree && ./scripts/deploy_appwrite_function.sh` |
 
 Full narrative + deploy variants: **`docs/APPWRITE_QUICKSTART.md`**.  
-Env reference: **`.env.example`**.
+Env reference: **`.env.example`**.  
+**GitHub Codespaces / Dev Containers:** **`.devcontainer/devcontainer.json`** and **`docs/CODESPACES_DEVCONTAINER.md`**.
 
 **Note:** This repo does not define a standalone `mcp dev` command; use **`./scripts/mcp_dev.sh`** (same as `uv run fastmcp dev inspector -m mcore_mcp.server` after `uv sync`).
 
