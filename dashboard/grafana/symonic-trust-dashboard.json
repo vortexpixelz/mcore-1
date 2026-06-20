@@ -1,0 +1,149 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "type": "text",
+      "title": "Symonic Trust Dashboard v0.1",
+      "gridPos": {"h": 4, "w": 24, "x": 0, "y": 0},
+      "options": {
+        "mode": "markdown",
+        "content": "# Symonic Trust Dashboard v0.1\nRepo-native control-state radar for claims, receipts, funding, and workspace security.\n\nData source: `dashboard/data/*.json` served locally or by Appwrite/MCP."
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Trust Score",
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 4},
+      "targets": [
+        {
+          "refId": "A",
+          "url": "http://localhost:8088/trust_state.json",
+          "format": "table",
+          "parser": "backend",
+          "root_selector": "trust_score",
+          "columns": [
+            {"selector": "score", "text": "score", "type": "number"}
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "percent", "min": 0, "max": 100},
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"values": false, "calcs": ["lastNotNull"], "fields": ""}, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto"}
+    },
+    {
+      "type": "bargauge",
+      "title": "Claim Tiers",
+      "gridPos": {"h": 6, "w": 10, "x": 6, "y": 4},
+      "targets": [
+        {
+          "refId": "A",
+          "url": "http://localhost:8088/trust_state.json",
+          "format": "table",
+          "parser": "backend",
+          "root_selector": "claims.tier_counts",
+          "columns": [
+            {"selector": "ESTABLISHED", "text": "ESTABLISHED", "type": "number"},
+            {"selector": "PLAUSIBLE", "text": "PLAUSIBLE", "type": "number"},
+            {"selector": "CONJECTURAL", "text": "CONJECTURAL", "type": "number"},
+            {"selector": "ORNAMENTAL", "text": "ORNAMENTAL", "type": "number"},
+            {"selector": "ASK", "text": "ASK", "type": "number"}
+          ]
+        }
+      ],
+      "options": {"orientation": "horizontal", "displayMode": "gradient", "showUnfilled": true, "reduceOptions": {"values": false, "calcs": ["lastNotNull"], "fields": ""}}
+    },
+    {
+      "type": "stat",
+      "title": "Receipts Logged",
+      "gridPos": {"h": 6, "w": 4, "x": 16, "y": 4},
+      "targets": [
+        {
+          "refId": "A",
+          "url": "http://localhost:8088/trust_state.json",
+          "format": "table",
+          "parser": "backend",
+          "root_selector": "receipts",
+          "columns": [{"selector": "count", "text": "count", "type": "number"}]
+        }
+      ],
+      "options": {"reduceOptions": {"values": false, "calcs": ["lastNotNull"], "fields": ""}, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "none", "justifyMode": "auto"}
+    },
+    {
+      "type": "stat",
+      "title": "Python Test Files",
+      "gridPos": {"h": 6, "w": 4, "x": 20, "y": 4},
+      "targets": [
+        {
+          "refId": "A",
+          "url": "http://localhost:8088/trust_state.json",
+          "format": "table",
+          "parser": "backend",
+          "root_selector": "tests",
+          "columns": [{"selector": "python_test_files", "text": "python_test_files", "type": "number"}]
+        }
+      ],
+      "options": {"reduceOptions": {"values": false, "calcs": ["lastNotNull"], "fields": ""}, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "none", "justifyMode": "auto"}
+    },
+    {
+      "type": "table",
+      "title": "Funding Pipeline",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 10},
+      "targets": [
+        {
+          "refId": "A",
+          "url": "http://localhost:8088/funding.json",
+          "format": "table",
+          "parser": "backend",
+          "root_selector": "items",
+          "columns": [
+            {"selector": "name", "text": "name", "type": "string"},
+            {"selector": "status", "text": "status", "type": "string"},
+            {"selector": "deadline", "text": "deadline", "type": "string"},
+            {"selector": "next_action", "text": "next_action", "type": "string"}
+          ]
+        }
+      ],
+      "options": {"showHeader": true}
+    },
+    {
+      "type": "table",
+      "title": "Workspace Controls",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 10},
+      "targets": [
+        {
+          "refId": "A",
+          "url": "http://localhost:8088/workspace.json",
+          "format": "table",
+          "parser": "backend",
+          "root_selector": "domains",
+          "columns": [
+            {"selector": "domain", "text": "domain", "type": "string"},
+            {"selector": "role", "text": "role", "type": "string"},
+            {"selector": "verified", "text": "verified", "type": "boolean"},
+            {"selector": "gmail_activated", "text": "gmail_activated", "type": "boolean"}
+          ]
+        }
+      ],
+      "options": {"showHeader": true}
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["symonic", "trust", "mcore", "grafana"],
+  "templating": {"list": []},
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Symonic Trust Dashboard v0.1",
+  "uid": "symonic-trust-v01",
+  "version": 1,
+  "weekStart": ""
+}
