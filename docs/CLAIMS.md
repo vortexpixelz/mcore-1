@@ -42,6 +42,23 @@ artifacts in this repository. Use direct language: "enforces,"
 
 ---
 
+## `[ESTABLISHED]` — Game Theory Extension
+
+| Claim | Evidence |
+|---|---|
+| `(0, 1/3, 2/3)` is a Nash fixed point of the Trit PD replicator dynamics: `f_N = f_D = 2/3`, replicator velocity = 0 | `tests/test_game_theory_nash.py::TestNashFixedPoint` (3 tests) |
+| C (cooperate) is strictly dominated at the Nash point: `f_C = -1/6 < f_N = f_D` | `tests/test_game_theory_nash.py::test_c_is_dominated_at_nash` |
+| On the C-D subspace (`p_N = 0`), all trajectories converge to pure (D, D) | `tests/test_game_theory_nash.py::TestBinaryPD` (analytic: D dominates C on that subspace) |
+| The trit ESS (one-third neutral) is qualitatively different from binary PD (all-defect) | `tests/test_game_theory_nash.py::test_trit_ess_differs_from_binary_ess` |
+
+## `[PLAUSIBLE]` — Game Theory Extension
+
+| Claim | What would promote to `[ESTABLISHED]` |
+|---|---|
+| Interior replicator trajectories converge asymptotically to `(0, 1/3, 2/3)` (numerically verified for 5 starting points) | Prove Lyapunov function on the N-D edge; or verify convergence analytically for all interior points |
+| `(0, 1/3, 2/3)` is an evolutionarily stable strategy (ESS), not merely a stable Nash point | Linearize replicator dynamics at the Nash point; show all eigenvalues on the active subspace have negative real parts |
+| Budget conservation toggle in cascade simulator enforces the same `check_tree()` invariant as other MCORE-1 domains | Extend `check_tree()` to accept a population-weight vector; add pytest coverage |
+
 ## `[PLAUSIBLE]` — Experimental Frontier
 
 Supported by working code in `experimental/`. Demonstrates qualitative
