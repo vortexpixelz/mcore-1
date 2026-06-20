@@ -2,6 +2,16 @@
 
 **MCORE-1: Metrical Core Representation** — a ternary conservation algebra with cross-domain empirical validation. Reference implementation of the [MCORE-1 Specification v0.1](docs/MCORE-1-v0.1-spec.pdf) (March 2026).
 
+## Live Demos
+
+> Served from [`gh-pages`](https://github.com/vortexpixelz/mcore-1/tree/gh-pages) — no install required.
+
+| Visualization | Description |
+|---|---|
+| [**Game Theory Geometry**](https://vortexpixelz.github.io/mcore-1/game_theory_geometry.html) | 3D simplex explorer for replicator dynamics (WebGL · Three.js) |
+| [**MCORE-1 Game Theory Engine**](https://vortexpixelz.github.io/mcore-1/mcore_game_sim.html) | Defection cascade · trit population · strategy tournament (Canvas) |
+| [**All Visualizations →**](https://vortexpixelz.github.io/mcore-1/) | Index page |
+
 ## What is this?
 
 MCORE-1 is a formal system built around one observation: a surprising number of constrained sequential processes — Sanskrit prosody, CpG methylation, quantum resource scheduling, genetic frameshift mutations — all obey the same conservation law. A parent node's weight must equal the trit-sum of its children. Violate that law and `check_tree()` tells you exactly where and why.
@@ -59,10 +69,10 @@ summaries, **Base64-TME**, and optional **Appwrite Function** delegation for
 ### Commands (copy-paste)
 
 | Goal | Command |
-|------|---------|
+|------|---------| 
 | **Reproducible install** | `uv sync --extra dev --extra mcp --extra analysis` |
 | **Tests** | `uv run pytest -q` |
-| **MCP Inspector (local “live” dev)** | `uv sync --extra dev --extra mcp --extra analysis && ./scripts/mcp_dev.sh` |
+| **MCP Inspector (local "live" dev)** | `uv sync --extra dev --extra mcp --extra analysis && ./scripts/mcp_dev.sh` |
 | **List MCP tools (JSON)** | `PYTHONPATH=src uv run fastmcp list src/mcore_mcp/server.py --json` |
 | **Bundle Function** | `./scripts/package_check_tree_bundle.sh` |
 | **Deploy Function** | `export APPWRITE_FUNCTION_ID=mcore_check_tree && ./scripts/deploy_appwrite_function.sh` |
@@ -78,7 +88,7 @@ Core math remains in **`src/mcore_py`** and **`src/mcore_1`**; Appwrite and MCP 
 Optional **PostHog** (`POSTHOG_API_KEY`): see `src/mcore_mcp/analytics.py`.
 
 | Domain | Overlay | States | Conservation law |
-|--------|---------|--------|-----------------|
+|--------|---------|--------|-----------------| 
 | Sanskrit prosody | `QuantitativeMetrics` | light / heavy / superheavy | mora count per foot |
 | CpG methylation | `MethylationMetrics` | unmethylated / hemimethylated / fully methylated | CpG island budget |
 | Quantum resources | `QuantumResourceMetrics` | idle / active / saturated | gate fidelity budget |
@@ -142,7 +152,7 @@ island = MethylationMetrics.from_beta_list([0.92, 0.95], island_label="CDKN2A_tu
 ## Notebooks
 
 | Notebook | What it shows |
-|----------|--------------|
+|----------|--------------| 
 | `mcore1_demo.ipynb` | Core algebra walkthrough — trit addition, check_tree, TME encoding |
 | `mcore_q_decoherence.ipynb` | Quantum decoherence as trit overflow; crystallization threshold |
 | `mcore_q_demo.ipynb` | Quantum resource scheduling overlay |
@@ -204,7 +214,7 @@ uv run pytest -x --tb=short   # stop on first failure
 ## Conformance levels
 
 | Level | Name       | Status | Contents |
-|-------|------------|--------|----------|
+|-------|------------|--------|----------| 
 | 1     | Core       | ✓      | Data model, trit algebra, checker |
 | 2     | Encoding   | ✓      | TME-6, Base64-TME, MSS parsing |
 | 3     | Generation | ✓      | Completion operator, QuantitativeMetrics |
