@@ -4,49 +4,59 @@ schema_version: 0.1
 packet_version: 0.1
 status: filled
 source_bundle: Bundle 1
+date_filled: 2026-06-23
 ---
 
 # Schema B: Research Ledger Packet
 
 ## Observation
 
-The MCORE-1 production Gabor sigma register uses three depth-indexed values
-(0.002 → 0.0015 → 0.001). The ratio between consecutive levels is constant at 0.75,
-and the overall ratio `sigma_2/sigma_0 = 0.5`. These values were chosen for audio
-synthesis; they were not derived from fluid dynamics.
+- `check_tree` is a formal, tested carry-cascade verifier with typed error kinds implemented in
+  `src/mcore_py/checker.py`; all five error kinds are covered by CI-passing tests.
+- The GJB2 c.35delG frameshift produces a zero-to-near-100% mismatch step function in audio WAV
+  files; σ_t × σ_f = 0.0907 (1.14× theoretical minimum); 100% lossless round-trip confirmed by
+  FFT decoder on all 681 trits.
+- `vortexpixelz/0xparallax` contains an agent/orchestration substrate with a documented Run/Step
+  trace gap; confirmed in the 2026-06-16 receipt ledger by direct-fetch.
+- `mcore-cascade-eval` was named in the 2026-06-16 receipt ledger with status
+  `[SPEC FROM CHAT / NOT YET DIRECT-FETCHED AS REPO FILE]` — a concept, not yet a repo artifact.
 
 ## Interpretation
 
-The cascade model `sigma_d = sigma_0 · 2^(-alpha · depth)` inverts cleanly to a
-Hölder regularity exponent. The register's depth-3 structure mirrors a three-level
-Richardson energy cascade structurally. The `sigma_2/sigma_0 = 0.5` ratio happens
-to neighbour the K41 Hölder range (1/3, 1), which may be coincidence or may indicate
-the audio compression heuristics share a root with turbulence scaling.
+The carry-cascade diagnostic demonstrates that a formally specified propagation structure can be
+made detectable and measurable in a real-world biological domain (GJB2). The Run/Step trace gap
+in 0xparallax suggests a structural homolog: an LLM reasoning step transition also has an
+observable trace gap where cascade errors could be injected or detected. If LLM trajectories can
+be encoded as carry sequences, then MCORE's error taxonomy may apply directly.
 
 ## Hypothesis
 
-`alpha_eff = alpha_0 - lambda_omega · omega_norm - eta_phase · |theta_jump| / pi`
-tracks qualitative Hölder regularity loss under rising vorticity in synthetic fields,
-and could be calibrated as a falsification target against published DNS data.
+A Cascade Index derived from MCORE carry-cascade diagnostics applied to LLM mid-trace steps
+predicts final-answer failure on standard reasoning benchmarks better than simple length or
+perplexity baselines.
+
+Falsification condition: if Cascade Index AUC is not distinguishable from a random baseline on
+≥ 3 diverse LLM families and ≥ 2 benchmarks, the hypothesis is disconfirmed for this domain.
 
 ## Evidence Receipts
 
-- `holder_alpha_from_sigma(0.0015, 0.002, 1)` → `alpha ≈ 0.415` (depth-1 register value)
-- `holder_alpha_from_sigma(0.001, 0.002, 2)` → `alpha = 0.5` (depth-2 register value)
-- Round-trip identity verified to `< 1e-12` for both register points
-- `sigma_2/sigma_0 = 0.5`; K41 predicts Hölder exponent `~1/3` in inertial range
-- `effective_alpha` clamps correctly; `alpha_eff = 0.0` at `omega_norm = 1.5` with
-  `lambda_omega = 0.5`, `alpha_0 = 0.75`
-- 273 core tests passing; NS-001 module validated via CLI round-trip
+- [ESTABLISHED] `check_tree` carry-cascade verifier — `src/mcore_py/checker.py`, CI-passing tests.
+- [ESTABLISHED] GJB2 step-function result — WAV files + σ_t × σ_f measurement in repo.
+- [ESTABLISHED] 0xparallax Run/Step trace gap — direct-fetched 2026-06-16.
+- [PLAUSIBLE] LLM reasoning trajectories contain cascade-detectable structure.
+- [CONJECTURAL] Cascade Index predicts LLM failure better than simple baselines.
+- [NOT YET A RECEIPT] `mcore-cascade-eval` as a repo file or eval harness.
 
 ## Falsification Test
 
-Run `effective_alpha` against the Johns Hopkins Turbulence Database vorticity field.
-If `alpha_eff` does not monotonically decrease as vorticity increases near dissipation
-scales, the additive reduction model is falsified and the conjecture is dropped.
+Create a minimal `mcore-cascade-eval` harness. Apply it to chain-of-thought traces from GSM8K
+or ARC on one model family. Compare Cascade Index AUC vs. perplexity AUC. If AUC does not
+exceed random baseline (0.5) by a meaningful margin (e.g., 0.05) on at least two benchmark
+subsets, the Cascade Index hypothesis is disconfirmed.
 
 ## Next Action
 
-Open a GitHub issue to define the JHTDB calibration experiment: pick one DNS snapshot,
-extract `omega_norm` time series, run `effective_alpha` sweep, compare to known
-structure-function scaling exponents from the same snapshot.
+Create `mcore-cascade-eval` as a repo file in `vortexpixelz/mcore-1` with a minimal test harness
+spec: input format, error taxonomy mapping, baseline comparison design. Direct-fetch the file
+to promote from [SPEC FROM CHAT] to [ESTABLISHED AS REPO RECEIPT] before any external pitch.
+

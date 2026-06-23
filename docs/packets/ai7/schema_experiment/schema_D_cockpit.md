@@ -4,48 +4,64 @@ schema_version: 0.1
 packet_version: 0.1
 status: filled
 source_bundle: Bundle 1
+date_filled: 2026-06-23
 ---
 
 # Schema D: Cockpit Packet
 
 ## Destination
 
-Validate `effective_alpha` as a calibrated Hölder regularity proxy against a
-published turbulence DNS dataset (e.g., Johns Hopkins Turbulence Database).
+A funded, reproducible `mcore-cascade-eval` pilot study that demonstrates whether MCORE
+carry-cascade diagnostics detect pre-failure states in LLM reasoning trajectories, generating
+enough data to produce or disconfirm a Trustworthy AI grant application.
 
 ## Current Position
 
-NS-001 merged to main. The bijection between sigma and alpha is proven in the
-unclamped region. The vorticity reduction model is implemented and clamped. No
-real turbulence data has been used. The module is explicitly TOY DIAGNOSTIC.
+- MCORE `check_tree` is implemented and formally verified (ESTABLISHED).
+- GJB2 step-function cascade result is measured and committed (ESTABLISHED).
+- 0xparallax Run/Step trace gap is documented (ESTABLISHED).
+- `mcore-cascade-eval` is a concept only; no repo file exists yet (SPEC FROM CHAT).
+- NSF Trustworthy AI is identified as a target; no submission in hand.
 
 ## Signal
 
-`sigma_2/sigma_0 = 0.5` — the register ratio is within the K41 Hölder range.
-`effective_alpha` hits 0.0 at `omega_norm = 1.5` with default coupling weights.
-Round-trip identity holds to machine precision for all register anchors.
+The GJB2 carry-cascade step function (zero-to-near-100% mismatch after c.35delG) is the
+strongest signal in hand. It shows cascade detection works in a biological domain. The
+structural homolog in LLM traces (Run/Step gap in 0xparallax) is the next signal to validate.
+Cascade Index AUC on a reasoning benchmark will be the decision gate for the NSF pitch.
 
 ## Uncertainty
 
-- `lambda_omega = 0.5` and `eta_phase = 0.25` are uncalibrated — chosen by analogy.
-- The additive reduction model has no PDE derivation.
-- `sigma_2/sigma_0 = 0.5` proximity to K41 may be coincidence.
-- DIANEW EVT protocol is untested on real neural data.
+- Unknown: whether LLM chain-of-thought traces encode enough carry-cascade structure for
+  MCORE diagnostics to fire meaningfully (vs. random noise).
+- Unknown: whether Cascade Index AUC exceeds perplexity baseline on reasoning benchmarks.
+- Unknown: whether NSF Trustworthy AI is the right mechanism or if another vehicle fits better.
+- Known unknown: `mcore-cascade-eval` harness design choices will affect results; not yet specified.
 
 ## Route
 
-1. Identify one JHTDB DNS snapshot with known vorticity and structure-function exponents.
-2. Extract `omega_norm` time series from the snapshot.
-3. Run `effective_alpha` sweep over the extracted values.
-4. Compare output trend to known Hölder exponents from the same snapshot.
-5. If monotone decrease holds: upgrade conjecture to plausible; calibrate weights.
-6. If not: falsify the additive model; record the failure in the claim-tier registry.
+1. Create `mcore-cascade-eval` as a repo spec file with input format, error taxonomy mapping,
+   and baseline comparison design.
+2. Direct-fetch the file to promote from [SPEC FROM CHAT] to [ESTABLISHED AS REPO RECEIPT].
+3. Implement minimal harness: encode chain-of-thought steps as carry sequences; apply `check_tree`.
+4. Run on GSM8K or ARC chain-of-thought traces for one model family.
+5. Compare Cascade Index AUC vs. perplexity baseline.
+6. If AUC > random + 0.05 on ≥ 2 subsets: draft NSF Trustworthy AI pitch.
+7. If AUC is at noise level: document as disconfirmation and revise hypothesis.
 
 ## Artifact
 
-`experimental/ns001_gabor_holder.py` — the runnable diagnostic. CLI demo produces
-the vorticity sweep table. All edge-case guards in place.
+Current artifacts in hand:
+- `src/mcore_py/checker.py` — the verifier.
+- `gjb2-mcore-sonification/` — step-function result.
+- `vortexpixelz/0xparallax` — Run/Step trace documentation.
+
+Next artifact to create:
+- `docs/mcore-cascade-eval-spec.md` — pilot study specification.
 
 ## Dismount
 
-One GitHub issue scoped to step 1–4 above. No NS proof claim regardless of outcome.
+Create `docs/mcore-cascade-eval-spec.md` in `vortexpixelz/mcore-1` with a minimum viable
+harness spec. Commit and direct-fetch. That single action moves the Cascade Index from
+[SPEC FROM CHAT] to [ESTABLISHED AS REPO RECEIPT] and unblocks the pilot study.
+

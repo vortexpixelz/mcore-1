@@ -2,6 +2,7 @@ experiment_id: AI7_SCHEMA_SELECTION_2026_06
 schema_version: 0.1
 source_bundle: Bundle 1
 scoring_scale: 1_to_10
+date_scored: 2026-06-23
 criteria:
   easy_to_fill: "How easy was it to place source material without fighting the schema?"
   retrieval_quality: "How easy will this be to find and reuse later?"
@@ -13,138 +14,156 @@ criteria:
 schemas:
   A_minimal_grant:
     easy_to_fill:
-      score: 8
-      notes: Five fields are simple to fill; forces a single claim. Struggled slightly
-        with multi-experiment bundle — had to pick one claim and leave others out.
+      score: 7
+      notes: "Fields map naturally to grant-writing muscle memory. Evidence and experiment placement
+        was intuitive. Slight friction deciding what goes in 'claim' vs. 'ask' when both could be
+        argued for the same content."
     retrieval_quality:
       score: 6
-      notes: Very minimal. Hard to scan for which sub-project this is about without
-        reading the claim section first.
+      notes: "The ask is always findable at the bottom. However, evidence is stripped of provenance
+        and tier labels, making it harder to remember which items are receipts vs. interpretation
+        after time passes."
     compression_quality:
-      score: 7
-      notes: Forces brevity well. Evidence and experiment sections are concise.
-        Loses the nuance of claim tiers.
+      score: 8
+      notes: "Excellent compression. The five-field structure forces ruthless prioritization. Most
+        of Bundle 1 fits cleanly into the five slots. Works best when the ask is well-defined."
     claim_discipline:
       score: 5
-      notes: No explicit tier system. Claim, evidence, and experiment blur together.
-        No mechanism to flag speculation vs. observation.
+      notes: "No explicit tier separation between observed and speculative. The single 'evidence'
+        field could silently absorb both established receipts and conjectural claims. This is the
+        schema's main weakness for research-in-progress bundles."
     actionability:
       score: 8
-      notes: Explicit Ask section is clear and concrete.
+      notes: "The 'ask' field is the final section, always present, always forces one concrete
+        funding or action request. Strong for grant-style outputs."
     reviewer_readiness:
-      score: 9
-      notes: This is NSF-shaped. A program officer would find it immediately legible.
+      score: 8
+      notes: "Very close to a standard grant abstract format. A program officer would recognize
+        the structure immediately. Best schema for external-facing documents."
     reuse_potential:
-      score: 6
-      notes: Too minimal for multi-experiment bundles. Would need one packet per
-        sub-project, which fragments retrieval.
-    total: 49
-
+      score: 7
+      notes: "Generic enough to work for many research bundles. Works less well when there is no
+        clear ask yet (early-stage exploration) or when claim discipline is critical."
   B_research_ledger:
     easy_to_fill:
-      score: 7
-      notes: Six sections flow naturally from observation through to next action.
-        Interpretation and hypothesis required careful separation.
+      score: 8
+      notes: "The observation/interpretation/hypothesis progression is natural for research notes.
+        Placing Bundle 1 content was straightforward because the ledger fields mirror how a
+        careful researcher already thinks."
     retrieval_quality:
-      score: 9
-      notes: Well-labeled sections make scanning easy. Observation anchors the
-        reader immediately; evidence receipts are linkable and verifiable.
+      score: 8
+      notes: "Well-structured fields make it easy to find observations vs. hypotheses vs. next
+        actions separately. Evidence receipts section retains provenance. Good for long-term reuse."
     compression_quality:
-      score: 8
-      notes: Captures the full claim-tier progression without being verbose.
-        Evidence receipts are specific and checkable.
-    claim_discipline:
-      score: 8
-      notes: Observation / interpretation / hypothesis / evidence / falsification
-        naturally enforces the upgrade ladder. Speculation stays in hypothesis.
-    actionability:
-      score: 9
-      notes: Explicit Next Action section is the most specific of the four schemas.
-        JHTDB calibration step is immediately actionable.
-    reviewer_readiness:
       score: 7
-      notes: Research journal style. Legible to a scientist reviewer; slightly less
-        immediate than A for a program officer.
+      notes: "Preserves more nuance than Schema A but creates slightly longer packets. The
+        falsification test field adds useful constraint but also adds bulk. Acceptable tradeoff."
+    claim_discipline:
+      score: 9
+      notes: "The observation/interpretation/hypothesis triad explicitly separates measured from
+        interpreted from hypothesized. The evidence_receipts field can carry tier labels. The best
+        structural claim discipline among the four schemas for research contexts."
+    actionability:
+      score: 8
+      notes: "The 'next_action' field is explicit and final. Produces a concrete single action
+        without ambiguity. The falsification test helps scope the action to something testable."
+    reviewer_readiness:
+      score: 6
+      notes: "More research-journal than grant-abstract in tone. An NSF reviewer would understand
+        it but would need some translation from 'evidence receipts' to standard proposal language.
+        Not the first choice for external-facing documents."
     reuse_potential:
       score: 9
-      notes: Works for any research bundle regardless of domain. The observation →
-        falsification arc is universally applicable.
-    total: 57
-
+      notes: "The observation/interpretation/hypothesis/falsification structure applies to nearly
+        any research bundle regardless of domain. Highly reusable. Natural fit for ongoing work
+        where bundles will be reviewed and updated over time."
   C_table_flip:
     easy_to_fill:
       score: 7
-      notes: Receipt anchor is clean. Ledger tiers (observed/plausible/speculative/
-        forbidden) map directly to MCORE claim tiers. Sentence forced good compression.
+      notes: "The four-tier ledger (observed/plausible/speculative/forbidden) requires careful
+        thought about which tier each piece of Bundle 1 belongs in. Some friction on first pass.
+        The 'sentence' field is a useful forcing function once the ledger is filled."
     retrieval_quality:
       score: 8
-      notes: Ledger table is highly scannable. Forbidden section immediately flags
-        what not to say. Sentence is a one-line retrieval hook.
+      notes: "The four-tier ledger makes it very easy to find what is safe to use vs. what must
+        not be upgraded. Claim safety is immediately visible without reading the full packet."
     compression_quality:
-      score: 9
-      notes: Sentence section is the best compression mechanism of the four schemas.
-        Forces a one-liner that survives context loss.
+      score: 7
+      notes: "The ledger tiers preserve nuance well. The 'sentence' field provides a useful
+        one-line summary. The 'receipt' and 'ask' bookend the packet cleanly. Slightly verbose
+        but the verbosity is load-bearing."
     claim_discipline:
-      score: 9
-      notes: Best of the four. Ledger directly mirrors MCORE claim tiers. Forbidden
-        section is explicit and useful.
+      score: 10
+      notes: "The four-tier ledger (observed/plausible/speculative/forbidden) is the strongest
+        claim-discipline mechanism in the experiment. The 'forbidden for now' tier explicitly
+        surfaces what must not be claimed yet, which is the hardest discipline to enforce. This
+        is the schema's defining strength."
     actionability:
       score: 7
-      notes: Ask is present but slightly less specific than B's Next Action.
+      notes: "The 'ask' field is present and forces a concrete request. The 'sentence' summarizes
+        the current state. However, unlike Schema B's 'next_action', the ask can be confused with
+        a funding ask vs. a next technical action. Slight ambiguity."
     reviewer_readiness:
-      score: 6
-      notes: Non-standard. The "table flip" naming and ledger format would need
-        translation for a program officer. Not immediately grant-shaped.
+      score: 5
+      notes: "The 'table flip' framing and ledger tier labels are non-standard. An NSF reviewer
+        would not recognize this format. Requires significant translation before external use.
+        Best for internal research hygiene, not external-facing documents."
     reuse_potential:
       score: 8
-      notes: Works well for MCORE-style bundles where claim-tier discipline matters.
-        Less natural for domains without an explicit tier system.
-    total: 54
-
+      notes: "The four-tier claim discipline pattern applies well to any bundle where claim hygiene
+        is critical (early research, pre-publication, funding-adjacent). Highly reusable for
+        internal work. Less reusable for external-facing packet formats."
   D_cockpit:
     easy_to_fill:
-      score: 5
-      notes: Navigation metaphor (destination/signal/route/dismount) is evocative
-        but required significant interpretation. "Signal" and "uncertainty" are
-        genuinely useful; "dismount" is awkward.
+      score: 6
+      notes: "The cockpit metaphor requires translation at fill time: what is 'signal' vs.
+        'current position' vs. 'route' is not always obvious from source material. Destination
+        field forced useful clarity about goal, but some fields (artifact, uncertainty) felt
+        redundant with each other."
     retrieval_quality:
       score: 7
-      notes: Current Position gives good orientation. Destination is a clear goal
-        anchor. Artifact section is immediately linkable.
+      notes: "Destination and current_position provide a quick orientation snapshot. The dismount
+        field is easy to find. However, the middle fields (signal, uncertainty, route) can be
+        hard to navigate without familiarity with the cockpit metaphor."
     compression_quality:
       score: 6
-      notes: Route section tends toward verbosity. Signal and Uncertainty are well-
-        compressed but the metaphor adds translation overhead.
+      notes: "Seven fields create some redundancy for early-stage bundles where the route is
+        not yet fully defined. The cockpit metaphor shines for operational state packets but is
+        less efficient for research-in-progress where the route is exploratory."
     claim_discipline:
       score: 6
-      notes: Uncertainty section captures epistemic humility but there is no explicit
-        tier ladder. Speculation and observation are not formally separated.
+      notes: "The 'uncertainty' field captures known unknowns explicitly. However, there is no
+        formal tier separation between observed and speculative within the other fields. Signal
+        and route can silently mix receipts and hypotheses without the four-tier discipline."
     actionability:
-      score: 8
-      notes: Route is the most step-by-step of the four schemas. Dismount forces
-        a concrete exit condition.
+      score: 9
+      notes: "The 'dismount' field is the strongest actionability mechanism in the experiment.
+        It forces one concrete next action as the final field, and the cockpit framing makes
+        it natural to state the dismount as a specific physical action rather than a vague goal."
     reviewer_readiness:
-      score: 5
-      notes: Too metaphorical for a standard reviewer. Would require explanation
-        before the content could be evaluated.
+      score: 4
+      notes: "The cockpit metaphor is the most non-standard of the four schemas. An NSF reviewer
+        would find the terminology opaque. 'Dismount' and 'signal' carry connotations from
+        other domains. Requires complete rewrite before external use."
     reuse_potential:
-      score: 6
-      notes: Navigation metaphor gets stale across bundles. Works well for
-        engineering-style deliverables; less natural for open-ended research.
-    total: 43
-
+      score: 7
+      notes: "Works well for operational state packets: tracking progress, next actions, and
+        open uncertainties. Less natural for pure research hypothesis bundles. Best for packets
+        that are already in execution mode rather than discovery mode."
 winner:
   schema_id: B_research_ledger
-  reason: Highest total (57). Best retrieval quality and reuse potential. The
-    observation → interpretation → hypothesis → evidence → falsification arc
-    enforces the claim upgrade ladder without requiring a domain-specific tier
-    system. Next Action section produced the most concrete and immediately
-    executable output of the four schemas.
-  modifications_needed: Borrow C's Sentence field as an optional one-liner summary
-    at the top of each packet. Borrow C's Forbidden section as an optional
-    anti-claim guard for experimental overlays.
-
-next_action: Open a GitHub issue scoped to the JHTDB calibration experiment —
-  one DNS snapshot, extract omega_norm time series, run effective_alpha sweep,
-  compare to known structure-function scaling exponents from the same snapshot.
-  Tag it NS-002.
+  reason: "Schema B scores highest across the most important criteria for an ongoing research
+    bundle: claim discipline (9), retrieval quality (8), easy_to_fill (8), reuse_potential (9),
+    and actionability (8). It produces an explicit next_action and falsification test, and its
+    observation/interpretation/hypothesis triad prevents silent claim laundering. The key
+    modification is to add a four-tier label convention to the evidence_receipts field, borrowing
+    claim discipline from Schema C without adopting its full non-standard format."
+  modifications_needed:
+    - "Add four-tier labels (ESTABLISHED, PLAUSIBLE, CONJECTURAL, FORBIDDEN) as a convention
+      within the evidence_receipts section."
+    - "Consider adding a one-sentence 'summary' field at the top (borrowed from Schema C's
+      'sentence' field) to speed up retrieval."
+next_action: "Create docs/mcore-cascade-eval-spec.md in vortexpixelz/mcore-1 with a minimum
+  viable harness spec (input format, error taxonomy mapping, baseline comparison design).
+  Commit and direct-fetch to move the Cascade Index from [SPEC FROM CHAT] to
+  [ESTABLISHED AS REPO RECEIPT]."
