@@ -7,13 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc g++ git \
     && rm -rf /var/lib/apt/lists/*
 
-# Pin exact deps first for layer caching
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Install the package itself
+# Install the package and its dependencies via pyproject.toml extras
 COPY . .
-RUN pip install --no-cache-dir -e ".[dev]"
+RUN pip install --no-cache-dir -e ".[dev,analysis]"
 
 # Default: run tests
 CMD ["pytest", "-v", "--tb=short"]
