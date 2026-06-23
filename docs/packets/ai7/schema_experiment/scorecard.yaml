@@ -1,0 +1,106 @@
+experiment_id: AI7_SCHEMA_SELECTION_2026_06
+schema_version: 0.1
+source_bundle: Bundle 1
+scoring_scale: 1_to_10
+criteria:
+  easy_to_fill: "How easy was it to place source material without fighting the schema?"
+  retrieval_quality: "How easy will this be to find and reuse later?"
+  compression_quality: "How well did it preserve the important parts while reducing noise?"
+  claim_discipline: "How well did it separate observed receipts from hypotheses/speculation?"
+  actionability: "How clearly did it produce a next action?"
+  reviewer_readiness: "How close is it to something an NSF/program reviewer could understand?"
+  reuse_potential: "How reusable is this schema for future bundles?"
+schemas:
+  A_minimal_grant:
+    easy_to_fill:
+      score:
+      notes:
+    retrieval_quality:
+      score:
+      notes:
+    compression_quality:
+      score:
+      notes:
+    claim_discipline:
+      score:
+      notes:
+    actionability:
+      score:
+      notes:
+    reviewer_readiness:
+      score:
+      notes:
+    reuse_potential:
+      score:
+      notes:
+  B_research_ledger:
+    easy_to_fill:
+      score:
+      notes:
+    retrieval_quality:
+      score:
+      notes:
+    compression_quality:
+      score:
+      notes:
+    claim_discipline:
+      score:
+      notes:
+    actionability:
+      score:
+      notes:
+    reviewer_readiness:
+      score:
+      notes:
+    reuse_potential:
+      score:
+      notes:
+  C_table_flip:
+    easy_to_fill:
+      score:
+      notes:
+    retrieval_quality:
+      score:
+      notes:
+    compression_quality:
+      score:
+      notes:
+    claim_discipline:
+      score:
+      notes:
+    actionability:
+      score:
+      notes:
+    reviewer_readiness:
+      score:
+      notes:
+    reuse_potential:
+      score:
+      notes:
+  D_cockpit:
+    easy_to_fill:
+      score:
+      notes:
+    retrieval_quality:
+      score:
+      notes:
+    compression_quality:
+      score:
+      notes:
+    claim_discipline:
+      score:
+      notes:
+    actionability:
+      score:
+      notes:
+    reviewer_readiness:
+      score:
+      notes:
+    reuse_potential:
+      score:
+      notes:
+winner:
+  schema_id:
+  reason:
+  modifications_needed:
+next_action:
