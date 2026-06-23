@@ -12,8 +12,10 @@ exponent.  It is an analogy tool and falsification target only.
 
 CLAIM TIERS
 -----------
-[ESTABLISHED]  holder_alpha_from_sigma / sigma_from_holder form a
-               deterministic bijection for depth > 0 and sigma_d < sigma_0.
+[ESTABLISHED]  holder_alpha_from_sigma and sigma_from_holder are exact
+               inverses of each other for depth > 0 and alpha in (0, 1)
+               (the unclamped region: sigma_d in (sigma_0*2^-depth, sigma_0)).
+               holder_alpha_from_sigma clamps to [0, 1] outside this range.
                No PDE claim of any kind.
 [ESTABLISHED]  effective_alpha is pure arithmetic; no fluid-dynamics claim.
 [PLAUSIBLE]    The sigma ratio sigma_2/sigma_0 = 0.5 numerically neighbours
@@ -74,8 +76,10 @@ SIGMA_REGISTER: dict[int, float] = {
 def holder_alpha_from_sigma(sigma_d: float, sigma_0: float, depth: int) -> float:
     """Map a depth-d Gabor sigma to a Hölder regularity exponent alpha.
 
-    [ESTABLISHED] Deterministic bijection for depth > 0 and sigma_d < sigma_0;
-    no PDE claim.
+    [ESTABLISHED] Deterministic function; exact inverse of sigma_from_holder
+    for depth > 0 and sigma_d in (sigma_0*2^-depth, sigma_0) — the unclamped
+    region where the natural alpha falls in (0, 1). Clamps to [0, 1] outside
+    this range. No PDE claim.
 
     Cascade model:  sigma_d = sigma_0 * 2^(-alpha * depth)
     Solving:        alpha   = log2(sigma_0 / sigma_d) / depth
@@ -102,8 +106,9 @@ def holder_alpha_from_sigma(sigma_d: float, sigma_0: float, depth: int) -> float
 def sigma_from_holder(sigma_0: float, alpha: float, depth: int) -> float:
     """Recover the depth-d Gabor sigma from a Hölder exponent alpha.
 
-    [ESTABLISHED] Deterministic inverse of holder_alpha_from_sigma
-    (for depth > 0 and sigma_d < sigma_0).
+    [ESTABLISHED] Deterministic function; exact inverse of
+    holder_alpha_from_sigma when depth > 0 and alpha is in (0, 1) — the
+    unclamped region. No PDE claim.
 
     Cascade model: sigma_d = sigma_0 * 2^(-alpha * depth)
 
