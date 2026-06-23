@@ -50,7 +50,7 @@ do not constitute evidence for the associated physical claims.
 | # | Analogy | Holds because | Does NOT imply |
 |---|---------|--------------|----------------|
 | A1 | The three-level sigma cascade `0.002 → 0.0015 → 0.001` mirrors a Richardson energy cascade `L → L/r → L/r²`. | Both are geometric sequences with ratio < 1. | The sigma levels correspond to physical length or time scales without external calibration. |
-| A2 | Gabor sigma compression under rising `effective_alpha` is structurally analogous to wavelet coefficient decay across scales in Hölder estimation. | Both involve a scale parameter that shrinks as roughness increases. | The Gabor atom is a physically faithful model of turbulent eddy structure. |
+| A2 | Gabor sigma decreasing with depth (at fixed alpha) is structurally analogous to wavelet coefficient decay across scales in Hölder estimation. | Both involve a scale parameter that shrinks at finer cascade levels; `sigma_d = sigma_0 * 2^(-alpha * depth)` is strictly decreasing in depth for alpha > 0. | The Gabor atom is a physically faithful model of turbulent eddy structure. |
 | A3 | The MCORE-1 trit cascade (S1→S2→S3) maps to a vorticity hierarchy by depth index. | Both have three levels with decreasing amplitude/sigma. | Trits encode vorticity values or any fluid-mechanical quantity. |
 
 ---
@@ -74,7 +74,7 @@ communication, paper draft, blog post, or social media referencing this
 module or the MCORE-1 project.
 
 | Forbidden statement | Why |
-|--------------------|----||
+|--------------------|-----|
 | "MCORE-1 solves Navier-Stokes" | No proof of global regularity has been constructed. The module is a toy diagnostic. |
 | "Proof of global regularity for 3-D NS" | This is an open Clay Millennium Prize problem. No such proof exists in this codebase. |
 | "Exact K41 measurement" | K41 scaling requires validated turbulence data at controlled Reynolds numbers; this module uses symbolic sigma ratios only. |

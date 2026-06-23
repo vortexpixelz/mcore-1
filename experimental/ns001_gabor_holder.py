@@ -13,7 +13,7 @@ exponent.  It is an analogy tool and falsification target only.
 CLAIM TIERS
 -----------
 [ESTABLISHED]  holder_alpha_from_sigma / sigma_from_holder form a
-               deterministic bijection on the (sigma_0, depth) register.
+               deterministic bijection for depth > 0 and sigma_d < sigma_0.
                No PDE claim of any kind.
 [ESTABLISHED]  effective_alpha is pure arithmetic; no fluid-dynamics claim.
 [PLAUSIBLE]    The sigma ratio sigma_2/sigma_0 = 0.5 numerically neighbours
@@ -74,7 +74,8 @@ SIGMA_REGISTER: dict[int, float] = {
 def holder_alpha_from_sigma(sigma_d: float, sigma_0: float, depth: int) -> float:
     """Map a depth-d Gabor sigma to a Hölder regularity exponent alpha.
 
-    [ESTABLISHED] Deterministic bijection; no PDE claim.
+    [ESTABLISHED] Deterministic bijection for depth > 0 and sigma_d < sigma_0;
+    no PDE claim.
 
     Cascade model:  sigma_d = sigma_0 * 2^(-alpha * depth)
     Solving:        alpha   = log2(sigma_0 / sigma_d) / depth
@@ -101,12 +102,15 @@ def holder_alpha_from_sigma(sigma_d: float, sigma_0: float, depth: int) -> float
 def sigma_from_holder(sigma_0: float, alpha: float, depth: int) -> float:
     """Recover the depth-d Gabor sigma from a Hölder exponent alpha.
 
-    [ESTABLISHED] Deterministic inverse of holder_alpha_from_sigma.
+    [ESTABLISHED] Deterministic inverse of holder_alpha_from_sigma
+    (for depth > 0 and sigma_d < sigma_0).
 
     Cascade model: sigma_d = sigma_0 * 2^(-alpha * depth)
 
-    sigma compresses toward 0 as alpha decreases or depth increases,
-    which in the toy analogy corresponds to less regular / more turbulent flow.
+    sigma is monotonically decreasing in alpha (for fixed depth > 0):
+    higher alpha (smoother) → sigma compresses toward 0;
+    lower alpha (rougher)   → sigma expands toward sigma_0.
+    sigma also compresses toward 0 as depth increases for any alpha > 0.
 
     Parameters
     ----------
@@ -193,23 +197,32 @@ def vorticity_phase_table(
     depth: int = 1,
     sigma_0: float = 0.002,
 ) -> list[dict]:
-    """Sweep omega/theta values and return effective alpha + compressed sigma.
+    """Sweep omega/theta values and return effective alpha and sigma_eff per step.
 
-    [CONJECTURE] sigma compression is an analogy target; not validated against
-    real turbulence datasets or NS solutions.
+    [CONJECTURE] sigma_eff from the holder model is an analogy target; not
+    validated against real turbulence datasets or NS solutions.
+
+    Note on direction: rising omega_norm reduces alpha_eff, which *increases*
+    sigma_eff (sigma = sigma_0 * 2^(-alpha*depth) is decreasing in alpha).
 
     Parameters
     ----------
     alpha_0     : Baseline Hölder exponent
     omega_norms : Normalised vorticity values to sweep
-    theta_jumps : Phase jumps (radians); defaults to [0.0] * len(omega_norms)
-    depth       : Cascade depth for sigma compression
+    theta_jumps : Phase jumps (radians); defaults to [0.0] * len(omega_norms).
+                  Must have the same length as omega_norms if provided.
+    depth       : Cascade depth for sigma_eff
     sigma_0     : Reference sigma (seconds)
 
     Returns
     -------
     List of dicts: omega_norm, theta_jump, alpha_eff, sigma_eff
     """
+    if theta_jumps is not None and len(theta_jumps) != len(omega_norms):
+        raise ValueError(
+            f"theta_jumps length ({len(theta_jumps)}) must match "
+            f"omega_norms length ({len(omega_norms)})"
+        )
     if theta_jumps is None:
         theta_jumps = [0.0] * len(omega_norms)
     rows = []
@@ -251,11 +264,13 @@ if __name__ == "__main__":
         ok = "OK" if abs(s_back - s) < 1e-12 else "FAIL"
         print(f"  depth={d}  alpha={a:.6f}  sigma_back={s_back:.6f}  [{ok}]")
 
-    # 3. Rising omega_norm, zero phase jump
-    print("\n--- Rising vorticity -> effective alpha compression (theta=0) ---")
+    # 3. Rising omega_norm, zero phase jump.
+    # alpha_0=0.75 is an above-register value chosen to show the full
+    # vorticity reduction range (actual depth-1 register alpha is ~0.415).
+    print("\n--- Rising vorticity -> alpha_eff reduction (theta=0) ---")
     omegas = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.5]
     table = vorticity_phase_table(
-        alpha_0=0.75,  # depth-1 baseline from the register
+        alpha_0=0.75,
         omega_norms=omegas,
         depth=1,
         sigma_0=0.002,
@@ -292,7 +307,7 @@ if __name__ == "__main__":
             f"  {row['sigma_eff']:>14.6f}"
         )
 
-    print("\n[ANALOGY] Sigma compression toward 0 mirrors Richardson cascade.")
-    print("[CONJECTURE] alpha -> 0 is a falsification target for NS blow-up proxies.")
+    print("\n[ANALOGY] At fixed alpha, sigma compresses with depth (Richardson cascade analogy).")
+    print("[CONJECTURE] alpha_eff -> 0 is a falsification target for NS blow-up proxies.")
     print("[FORBIDDEN] No global regularity claim. No NS proof. No exact K41.")
     print("=" * 65)
