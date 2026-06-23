@@ -84,7 +84,9 @@ def holder_alpha_from_sigma(sigma_d: float, sigma_0: float, depth: int) -> float
     Cascade model:  sigma_d = sigma_0 * 2^(-alpha * depth)
     Solving:        alpha   = log2(sigma_0 / sigma_d) / depth
 
-    Returns alpha = 1.0 for depth <= 0 or sigma_d >= sigma_0 (fully regular).
+    Returns alpha = 1.0 for depth <= 0 (reference level; fully regular by
+    convention). Returns alpha = 0.0 for sigma_d >= sigma_0 (cascade model
+    gives alpha <= 0 in that region; clamped to 0).
     Result is clamped to [0, 1].
 
     Parameters
@@ -102,8 +104,10 @@ def holder_alpha_from_sigma(sigma_d: float, sigma_0: float, depth: int) -> float
             f"sigma_0 and sigma_d must be positive; "
             f"got sigma_0={sigma_0}, sigma_d={sigma_d}"
         )
-    if depth <= 0 or sigma_d >= sigma_0:
+    if depth <= 0:
         return 1.0
+    if sigma_d >= sigma_0:
+        return 0.0
     alpha = math.log2(sigma_0 / sigma_d) / depth
     return max(0.0, min(1.0, alpha))
 
@@ -124,7 +128,8 @@ def sigma_from_holder(sigma_0: float, alpha: float, depth: int) -> float:
 
     Parameters
     ----------
-    sigma_0 : Reference sigma at depth 0 (seconds); must be positive.
+    sigma_0 : Reference sigma at depth 0 (seconds); must be positive
+              (raises ValueError otherwise).
     alpha   : Hölder regularity exponent. Register semantics apply for
               alpha in [0, 1]; values outside this range are accepted and
               yield a mathematically consistent sigma via the cascade
@@ -137,6 +142,8 @@ def sigma_from_holder(sigma_0: float, alpha: float, depth: int) -> float:
     -------
     sigma_d (seconds)
     """
+    if sigma_0 <= 0:
+        raise ValueError(f"sigma_0 must be positive; got sigma_0={sigma_0}")
     return sigma_0 * (2.0 ** (-alpha * depth))
 
 
