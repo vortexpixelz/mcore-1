@@ -1,0 +1,7 @@
+end_state:
+  source_bundle_notes: filled
+  schemas_backfilled: true
+  scorecard: filled_with_notes
+  result_memo: completed
+  winning_template: proposed
+  ai7_next_action: exactly_one
