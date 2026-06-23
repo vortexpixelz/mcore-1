@@ -97,6 +97,11 @@ def holder_alpha_from_sigma(sigma_d: float, sigma_0: float, depth: int) -> float
     -------
     alpha in [0, 1]  (0 = maximally rough, 1 = Lipschitz smooth)
     """
+    if sigma_0 <= 0 or sigma_d <= 0:
+        raise ValueError(
+            f"sigma_0 and sigma_d must be positive; "
+            f"got sigma_0={sigma_0}, sigma_d={sigma_d}"
+        )
     if depth <= 0 or sigma_d >= sigma_0:
         return 1.0
     alpha = math.log2(sigma_0 / sigma_d) / depth
@@ -119,9 +124,14 @@ def sigma_from_holder(sigma_0: float, alpha: float, depth: int) -> float:
 
     Parameters
     ----------
-    sigma_0 : Reference sigma at depth 0 (seconds)
-    alpha   : Hölder regularity exponent in [0, 1]
-    depth   : Cascade depth (non-negative integer)
+    sigma_0 : Reference sigma at depth 0 (seconds); must be positive.
+    alpha   : Hölder regularity exponent. Register semantics apply for
+              alpha in [0, 1]; values outside this range are accepted and
+              yield a mathematically consistent sigma via the cascade
+              formula, but may violate the register interpretation.
+    depth   : Cascade depth. Register semantics apply for depth >= 0;
+              negative depth is accepted (sigma_d > sigma_0) but lies
+              outside the register interpretation.
 
     Returns
     -------
