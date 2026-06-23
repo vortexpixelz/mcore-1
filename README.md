@@ -12,6 +12,19 @@
 | [**MCORE-1 Game Theory Engine**](https://vortexpixelz.github.io/mcore-1/mcore_game_sim.html) | Defection cascade · trit population · strategy tournament (Canvas) |
 | [**All Visualizations →**](https://vortexpixelz.github.io/mcore-1/) | Index page |
 
+### GitHub Pages setup (for maintainers)
+
+1. Open repository **Settings → Pages**.
+2. Under **Build and deployment**, choose:
+   - **Source:** Deploy from a branch
+   - **Branch:** `gh-pages`
+   - **Folder:** `/ (root)`
+3. Keep `.github/workflows/deploy-pages.yml` enabled so pushes to `main` publish `index.html`, `mcore_game_sim.html`, and `game_theory_geometry.html` to `gh-pages`.
+4. Verify:
+   - https://vortexpixelz.github.io/mcore-1/
+   - https://vortexpixelz.github.io/mcore-1/mcore_game_sim.html
+   - https://vortexpixelz.github.io/mcore-1/game_theory_geometry.html
+
 ## What is this?
 
 MCORE-1 is a formal system built around one observation: a surprising number of constrained sequential processes — Sanskrit prosody, CpG methylation, quantum resource scheduling, genetic frameshift mutations — all obey the same conservation law. A parent node's weight must equal the trit-sum of its children. Violate that law and `check_tree()` tells you exactly where and why.

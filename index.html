@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MCORE-1 Visualizations</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0f1115;
+      --card: #171a21;
+      --text: #e8edf3;
+      --muted: #9aa7b5;
+      --link: #6fb1ff;
+      --border: #2a3040;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f7f9fc;
+        --card: #ffffff;
+        --text: #18202a;
+        --muted: #4d5b6a;
+        --link: #0b63d1;
+        --border: #d8e0ea;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 1rem;
+    }
+    h1 { margin: 0 0 0.5rem; font-size: 2rem; }
+    p { color: var(--muted); margin: 0 0 1.25rem; }
+    .grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    a {
+      color: var(--link);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    a:hover { text-decoration: underline; }
+    .small { font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>MCORE-1 Visualizations</h1>
+    <p>Live static demos served by GitHub Pages for the <code>vortexpixelz/mcore-1</code> repository.</p>
+    <section class="grid" aria-label="Visualization links">
+      <article class="card">
+        <a href="./game_theory_geometry.html">Game Theory Geometry</a>
+        <p class="small">3D simplex explorer for replicator dynamics (WebGL · Three.js).</p>
+      </article>
+      <article class="card">
+        <a href="./mcore_game_sim.html">MCORE-1 Game Theory Engine</a>
+        <p class="small">Defection cascade, trit population, and strategy tournament (Canvas).</p>
+      </article>
+      <article class="card">
+        <a href="https://github.com/vortexpixelz/mcore-1">Repository</a>
+        <p class="small">Code, notebooks, and documentation for MCORE-1.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
