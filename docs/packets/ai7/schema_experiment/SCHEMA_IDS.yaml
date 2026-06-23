@@ -1,0 +1,9 @@
+schemas:
+  - schema_id: A_minimal_grant
+    file: schema_A_minimal_grant.md
+  - schema_id: B_research_ledger
+    file: schema_B_research_ledger.md
+  - schema_id: C_table_flip
+    file: schema_C_table_flip.md
+  - schema_id: D_cockpit
+    file: schema_D_cockpit.md
