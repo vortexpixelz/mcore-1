@@ -69,7 +69,7 @@ summaries, **Base64-TME**, and optional **Appwrite Function** delegation for
 ### Commands (copy-paste)
 
 | Goal | Command |
-|------|---------| 
+|------|---------|
 | **Reproducible install** | `uv sync --extra dev --extra mcp --extra analysis` |
 | **Tests** | `uv run pytest -q` |
 | **MCP Inspector (local "live" dev)** | `uv sync --extra dev --extra mcp --extra analysis && ./scripts/mcp_dev.sh` |
@@ -88,7 +88,7 @@ Core math remains in **`src/mcore_py`** and **`src/mcore_1`**; Appwrite and MCP 
 Optional **PostHog** (`POSTHOG_API_KEY`): see `src/mcore_mcp/analytics.py`.
 
 | Domain | Overlay | States | Conservation law |
-|--------|---------|--------|-----------------| 
+|--------|---------|--------|-----------------|
 | Sanskrit prosody | `QuantitativeMetrics` | light / heavy / superheavy | mora count per foot |
 | CpG methylation | `MethylationMetrics` | unmethylated / hemimethylated / fully methylated | CpG island budget |
 | Quantum resources | `QuantumResourceMetrics` | idle / active / saturated | gate fidelity budget |
@@ -152,7 +152,7 @@ island = MethylationMetrics.from_beta_list([0.92, 0.95], island_label="CDKN2A_tu
 ## Notebooks
 
 | Notebook | What it shows |
-|----------|--------------| 
+|----------|--------------|
 | `mcore1_demo.ipynb` | Core algebra walkthrough — trit addition, check_tree, TME encoding |
 | `mcore_q_decoherence.ipynb` | Quantum decoherence as trit overflow; crystallization threshold |
 | `mcore_q_demo.ipynb` | Quantum resource scheduling overlay |
@@ -214,7 +214,7 @@ uv run pytest -x --tb=short   # stop on first failure
 ## Conformance levels
 
 | Level | Name       | Status | Contents |
-|-------|------------|--------|----------| 
+|-------|------------|--------|----------|
 | 1     | Core       | ✓      | Data model, trit algebra, checker |
 | 2     | Encoding   | ✓      | TME-6, Base64-TME, MSS parsing |
 | 3     | Generation | ✓      | Completion operator, QuantitativeMetrics |
@@ -239,4 +239,4 @@ MIT
 
 ## Author
 
-Jacob Walker · [Symonic LLC](https://github.com/vortexpixelz) · [@WalkerJaco38855](https://x.com/WalkerJaco38855)
+Jacob Walker · [Symonic LLC](https://symonic.com) · [@symjaco](https://x.com/symjaco)
