@@ -1,0 +1,44 @@
+registry_id: AI7_SCHEMA_REGISTRY
+registry_version: "0.1"
+experiment_id: AI7_SCHEMA_SELECTION_2026_06
+winner: B_research_ledger
+
+schemas:
+  - schema_id: A_minimal_grant
+    schema_version: "0.1"
+    fields:
+      - claim
+      - problem
+      - evidence
+      - experiment
+      - ask
+
+  - schema_id: B_research_ledger
+    schema_version: "0.1"
+    fields:
+      - observation
+      - interpretation
+      - hypothesis
+      - evidence_receipts
+      - falsification_test
+      - next_action
+
+  - schema_id: C_table_flip
+    schema_version: "0.1"
+    fields:
+      - receipt
+      - claim
+      - ledger
+      - sentence
+      - ask
+
+  - schema_id: D_cockpit
+    schema_version: "0.1"
+    fields:
+      - destination
+      - current_position
+      - signal
+      - uncertainty
+      - route
+      - artifact
+      - dismount

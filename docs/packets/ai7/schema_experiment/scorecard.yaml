@@ -13,94 +13,138 @@ criteria:
 schemas:
   A_minimal_grant:
     easy_to_fill:
-      score:
-      notes:
+      score: 8
+      notes: Five fields are simple to fill; forces a single claim. Struggled slightly
+        with multi-experiment bundle — had to pick one claim and leave others out.
     retrieval_quality:
-      score:
-      notes:
+      score: 6
+      notes: Very minimal. Hard to scan for which sub-project this is about without
+        reading the claim section first.
     compression_quality:
-      score:
-      notes:
+      score: 7
+      notes: Forces brevity well. Evidence and experiment sections are concise.
+        Loses the nuance of claim tiers.
     claim_discipline:
-      score:
-      notes:
+      score: 5
+      notes: No explicit tier system. Claim, evidence, and experiment blur together.
+        No mechanism to flag speculation vs. observation.
     actionability:
-      score:
-      notes:
+      score: 8
+      notes: Explicit Ask section is clear and concrete.
     reviewer_readiness:
-      score:
-      notes:
+      score: 9
+      notes: This is NSF-shaped. A program officer would find it immediately legible.
     reuse_potential:
-      score:
-      notes:
+      score: 6
+      notes: Too minimal for multi-experiment bundles. Would need one packet per
+        sub-project, which fragments retrieval.
+    total: 49
+
   B_research_ledger:
     easy_to_fill:
-      score:
-      notes:
+      score: 7
+      notes: Six sections flow naturally from observation through to next action.
+        Interpretation and hypothesis required careful separation.
     retrieval_quality:
-      score:
-      notes:
+      score: 9
+      notes: Well-labeled sections make scanning easy. Observation anchors the
+        reader immediately; evidence receipts are linkable and verifiable.
     compression_quality:
-      score:
-      notes:
+      score: 8
+      notes: Captures the full claim-tier progression without being verbose.
+        Evidence receipts are specific and checkable.
     claim_discipline:
-      score:
-      notes:
+      score: 8
+      notes: Observation / interpretation / hypothesis / evidence / falsification
+        naturally enforces the upgrade ladder. Speculation stays in hypothesis.
     actionability:
-      score:
-      notes:
+      score: 9
+      notes: Explicit Next Action section is the most specific of the four schemas.
+        JHTDB calibration step is immediately actionable.
     reviewer_readiness:
-      score:
-      notes:
+      score: 7
+      notes: Research journal style. Legible to a scientist reviewer; slightly less
+        immediate than A for a program officer.
     reuse_potential:
-      score:
-      notes:
+      score: 9
+      notes: Works for any research bundle regardless of domain. The observation →
+        falsification arc is universally applicable.
+    total: 57
+
   C_table_flip:
     easy_to_fill:
-      score:
-      notes:
+      score: 7
+      notes: Receipt anchor is clean. Ledger tiers (observed/plausible/speculative/
+        forbidden) map directly to MCORE claim tiers. Sentence forced good compression.
     retrieval_quality:
-      score:
-      notes:
+      score: 8
+      notes: Ledger table is highly scannable. Forbidden section immediately flags
+        what not to say. Sentence is a one-line retrieval hook.
     compression_quality:
-      score:
-      notes:
+      score: 9
+      notes: Sentence section is the best compression mechanism of the four schemas.
+        Forces a one-liner that survives context loss.
     claim_discipline:
-      score:
-      notes:
+      score: 9
+      notes: Best of the four. Ledger directly mirrors MCORE claim tiers. Forbidden
+        section is explicit and useful.
     actionability:
-      score:
-      notes:
+      score: 7
+      notes: Ask is present but slightly less specific than B's Next Action.
     reviewer_readiness:
-      score:
-      notes:
+      score: 6
+      notes: Non-standard. The "table flip" naming and ledger format would need
+        translation for a program officer. Not immediately grant-shaped.
     reuse_potential:
-      score:
-      notes:
+      score: 8
+      notes: Works well for MCORE-style bundles where claim-tier discipline matters.
+        Less natural for domains without an explicit tier system.
+    total: 54
+
   D_cockpit:
     easy_to_fill:
-      score:
-      notes:
+      score: 5
+      notes: Navigation metaphor (destination/signal/route/dismount) is evocative
+        but required significant interpretation. "Signal" and "uncertainty" are
+        genuinely useful; "dismount" is awkward.
     retrieval_quality:
-      score:
-      notes:
+      score: 7
+      notes: Current Position gives good orientation. Destination is a clear goal
+        anchor. Artifact section is immediately linkable.
     compression_quality:
-      score:
-      notes:
+      score: 6
+      notes: Route section tends toward verbosity. Signal and Uncertainty are well-
+        compressed but the metaphor adds translation overhead.
     claim_discipline:
-      score:
-      notes:
+      score: 6
+      notes: Uncertainty section captures epistemic humility but there is no explicit
+        tier ladder. Speculation and observation are not formally separated.
     actionability:
-      score:
-      notes:
+      score: 8
+      notes: Route is the most step-by-step of the four schemas. Dismount forces
+        a concrete exit condition.
     reviewer_readiness:
-      score:
-      notes:
+      score: 5
+      notes: Too metaphorical for a standard reviewer. Would require explanation
+        before the content could be evaluated.
     reuse_potential:
-      score:
-      notes:
+      score: 6
+      notes: Navigation metaphor gets stale across bundles. Works well for
+        engineering-style deliverables; less natural for open-ended research.
+    total: 43
+
 winner:
-  schema_id:
-  reason:
-  modifications_needed:
-next_action:
+  schema_id: B_research_ledger
+  reason: Highest total (57). Best retrieval quality and reuse potential. The
+    observation → interpretation → hypothesis → evidence → falsification arc
+    enforces the claim upgrade ladder without requiring a domain-specific tier
+    system. Next Action section produced the most concrete and immediately
+    executable output of the four schemas.
+  modifications_needed: Borrow C's Sentence field as an optional one-liner summary
+    at the top of each packet. Borrow C's Forbidden section as an optional
+    anti-claim guard for experimental overlays.
+
+next_action: Open a GitHub issue scoped to the JHTDB calibration experiment —
+  one DNS snapshot, extract omega_norm time series, run effective_alpha sweep,
+  compare to known structure-function scaling exponents from the same snapshot.
+  Tag it NS-002.
