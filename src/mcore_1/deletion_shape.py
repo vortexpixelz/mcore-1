@@ -4,19 +4,25 @@ Source-of-record for turning :func:`mcore_1.check_tree.check_deletion`
 :class:`~mcore_1.check_tree.NodeResult` rows into a canonical, hash-stable
 geometry record.
 
-Two independent SHA-256 signatures are produced:
+Three independent SHA-256 signatures are produced:
 
 * ``receipt_signature`` — over the **complete absolute** canonical artifact
   (absolute original-coordinate spans, the deletion site ``k``, all counts).
-  This is the identity of the full receipt for a specific deletion.
-* ``geometry_signature`` — over the **normalized structural geometry expressed
-  relative to** the deletion site ``k`` (offsets ``lo - k`` / ``hi - k``,
-  widths, survivor counts, error kinds, left/contains/right class). Absolute
-  position is stripped, so two deletions with the same *relative* error
-  geometry share a ``geometry_signature`` even at different sites.
+  The identity of the full receipt for a specific deletion.
+* ``topology_signature`` — over the geometry expressed **relative to** ``k``
+  (offsets ``lo - k`` / ``hi - k``) but **retaining each node's post-order rank**
+  in the whole mutant tree. Because that rank counts nodes to the left of the
+  deletion, this digest is **position-dependent through placement**; it is the
+  right basis for exact topological identity, not for a position-free compare.
+* ``geometry_signature`` — over a **truly local, position-stripped** view: a
+  canonically sorted multiset of ``k``-relative node descriptors (offsets,
+  widths, survivor counts, site class, error kinds) with **no post-order rank
+  and no post-order ordering**. Two deletions with the same local error geometry
+  share a ``geometry_signature`` regardless of where they sit in the sequence.
 
 Compare ``geometry_signature`` (never ``receipt_signature``) to test whether two
-deletions produce the same error geometry.
+deletions produce the same local error geometry; use ``topology_signature`` when
+exact tree placement must also match.
 
 **Determinism guarantee.** Node identity in both signatures is the deterministic
 span ``(leaf_lo, leaf_hi)`` and post-order rank — never the runtime
@@ -49,6 +55,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Any
 
 from mcore_1.check_tree import NodeResult
@@ -111,6 +118,18 @@ class DeletionShape:
     invalid_left_of_deletion_count: int
     invalid_right_of_deletion_count: int
 
+    def __post_init__(self) -> None:
+        # ``frozen=True`` blocks attribute reassignment but does NOT freeze a
+        # mutable dict field. Store a read-only mapping (built from an internal
+        # copy) so canonical JSON and every signature are immutable after
+        # construction.
+        if not isinstance(self.error_kind_counts, MappingProxyType):
+            object.__setattr__(
+                self,
+                "error_kind_counts",
+                MappingProxyType(dict(self.error_kind_counts)),
+            )
+
     # -- canonical serializations -------------------------------------------
 
     def to_receipt_dict(self) -> dict[str, Any]:
@@ -134,13 +153,15 @@ class DeletionShape:
             "invalid_right_of_deletion_count": self.invalid_right_of_deletion_count,
         }
 
-    def to_geometry_dict(self) -> dict[str, Any]:
-        """Normalized geometry relative to ``k`` (basis of ``geometry_signature``).
+    def to_topology_dict(self) -> dict[str, Any]:
+        """Topology-aware geometry relative to ``k`` (basis of ``topology_signature``).
 
         Absolute position (``deletion_pos_1`` and absolute ``lo``/``hi``) is
-        removed; spans become offsets ``lo - k`` / ``hi - k``. Sizes and relative
-        structure are retained, so two deletions with matching relative geometry
-        produce identical ``geometry_signature`` values.
+        replaced by offsets ``lo - k`` / ``hi - k``, but each node **keeps its
+        post-order rank** in the whole mutant tree. That rank counts nodes to the
+        left of the deletion, so this digest is position-dependent through
+        placement — use it for exact topological identity, not for a
+        position-stripped geometry comparison.
         """
         k = self.deletion_pos_1
         return {
@@ -172,20 +193,79 @@ class DeletionShape:
             "invalid_right_of_deletion_count": self.invalid_right_of_deletion_count,
         }
 
+    def to_geometry_dict(self) -> dict[str, Any]:
+        """Truly local, position-stripped geometry (basis of ``geometry_signature``).
+
+        Only ``k``-relative offsets, widths, survivor counts, site classes, and
+        error kinds survive, over a **canonically sorted multiset** of the invalid
+        nodes — no post-order rank and no post-order ordering. Two deletions with
+        the same local error geometry share a ``geometry_signature`` regardless of
+        where they sit in the sequence.
+        """
+        k = self.deletion_pos_1
+        descriptors = sorted(
+            (
+                n.leaf_lo - k,
+                n.leaf_hi - k,
+                n.coordinate_width,
+                n.survivor_leaf_count,
+                n.site_class,
+                tuple(n.error_kinds),
+            )
+            for n in self.invalid_nodes
+        )
+        widths = [d[2] for d in descriptors]
+        return {
+            "schema_version": self.schema_version,
+            "wt_length": self.wt_length,
+            "mutant_length": self.mutant_length,
+            "total_internal_nodes": self.total_internal_nodes,
+            "valid_node_count": self.valid_node_count,
+            "invalid_node_count": self.invalid_node_count,
+            "invalid_without_listed_kind_count": self.invalid_without_listed_kind_count,
+            "error_kind_counts": dict(self.error_kind_counts),
+            "invalid_contains_deletion_count": self.invalid_contains_deletion_count,
+            "invalid_left_of_deletion_count": self.invalid_left_of_deletion_count,
+            "invalid_right_of_deletion_count": self.invalid_right_of_deletion_count,
+            "narrowest_invalid_width": min(widths) if widths else None,
+            "widest_invalid_width": max(widths) if widths else None,
+            "local_invalid_descriptors": [
+                {
+                    "lo_offset": lo,
+                    "hi_offset": hi,
+                    "coordinate_width": w,
+                    "survivor_leaf_count": s,
+                    "site_class": sc,
+                    "error_kinds": list(ek),
+                }
+                for (lo, hi, w, s, sc, ek) in descriptors
+            ],
+        }
+
     def to_canonical_json(self) -> str:
         """Byte-stable canonical JSON of the full receipt payload."""
         return _canonical_json(self.to_receipt_dict())
 
+    def topology_canonical_json(self) -> str:
+        """Byte-stable canonical JSON of the topology-aware payload."""
+        return _canonical_json(self.to_topology_dict())
+
     def geometry_canonical_json(self) -> str:
-        """Byte-stable canonical JSON of the normalized geometry payload."""
+        """Byte-stable canonical JSON of the position-stripped geometry payload."""
         return _canonical_json(self.to_geometry_dict())
 
     def receipt_signature(self) -> str:
         """SHA-256 over the complete absolute canonical artifact."""
         return hashlib.sha256(self.to_canonical_json().encode("utf-8")).hexdigest()
 
+    def topology_signature(self) -> str:
+        """SHA-256 over the topology-aware geometry (offsets + post-order rank)."""
+        return hashlib.sha256(
+            self.topology_canonical_json().encode("utf-8")
+        ).hexdigest()
+
     def geometry_signature(self) -> str:
-        """SHA-256 over the normalized geometry (relative to ``k``)."""
+        """SHA-256 over the position-stripped local geometry."""
         return hashlib.sha256(
             self.geometry_canonical_json().encode("utf-8")
         ).hexdigest()

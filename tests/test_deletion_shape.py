@@ -56,19 +56,57 @@ def test_determinism_across_repeated_and_fresh_calls() -> None:
 
     assert s1.to_canonical_json() == s1b.to_canonical_json() == s2.to_canonical_json()
     assert s1.receipt_signature() == s2.receipt_signature()
+    assert s1.topology_signature() == s2.topology_signature()
     assert s1.geometry_signature() == s2.geometry_signature()
     assert s1.schema_version == SCHEMA_VERSION
 
 
-def test_two_signatures_distinct_roles() -> None:
+def test_three_signatures_distinct_roles() -> None:
     rows, n, m = _rows_for(FIXED_DNA_30, 12)
     s = summarize_deletion_shape(rows, deletion_pos_1=12, wt_length=n, mutant_length=m)
-    assert len(s.receipt_signature()) == 64
-    assert len(s.geometry_signature()) == 64
-    # Different payloads (absolute vs k-relative) → different digests.
-    assert s.receipt_signature() != s.geometry_signature()
+    sigs = {s.receipt_signature(), s.topology_signature(), s.geometry_signature()}
+    assert len(sigs) == 3  # distinct payloads → distinct digests
+    assert all(len(x) == 64 for x in sigs)
     # Canonical JSON excludes any UUID substring.
     assert "uuid" not in s.to_canonical_json().lower()
+    # The position-stripped geometry carries no post-order rank.
+    assert "post_rank" not in s.geometry_canonical_json()
+    assert "post_rank" in s.topology_canonical_json()
+
+
+def test_error_kind_counts_is_immutable() -> None:
+    rows, n, m = _rows_for(FIXED_DNA_30, 12)
+    s = summarize_deletion_shape(rows, deletion_pos_1=12, wt_length=n, mutant_length=m)
+    before = s.receipt_signature()
+    with pytest.raises(TypeError):
+        s.error_kind_counts["OVERFLOW"] = 9999  # type: ignore[index]
+    with pytest.raises(TypeError):
+        s.error_kind_counts["INJECTED"] = 1  # type: ignore[index]
+    assert s.receipt_signature() == before  # signatures cannot be mutated after build
+
+
+def test_golden_counts_and_receipt_length30_k12() -> None:
+    """Freeze exact validator output so a behavior change is detectable."""
+    rows, n, m = _rows_for(FIXED_DNA_30, 12)
+    s = summarize_deletion_shape(rows, deletion_pos_1=12, wt_length=n, mutant_length=m)
+    assert (n, m) == (30, 29)
+    assert s.total_internal_nodes == 28
+    assert s.valid_node_count == 6
+    assert s.invalid_node_count == 22
+    assert s.invalid_without_listed_kind_count == 0
+    assert dict(s.error_kind_counts) == {"CONSERVATION": 0, "OVERFLOW": 22}
+    assert (
+        s.invalid_left_of_deletion_count,
+        s.invalid_contains_deletion_count,
+        s.invalid_right_of_deletion_count,
+    ) == (6, 5, 11)
+    assert s.first_invalid_span == (2, 3)
+    assert s.narrowest_invalid_span == (2, 3)
+    assert s.widest_invalid_span == (1, 30)
+    assert (
+        s.receipt_signature()
+        == "e8c8e1c0006e64ffee75746a85fcbf87acfd46e943d88e719acc22a3e938b86f"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -175,7 +213,12 @@ def test_all_valid_tree_has_null_spans() -> None:
     assert s.error_kind_counts == {"CONSERVATION": 0, "OVERFLOW": 0}
     d = json.loads(s.to_canonical_json())
     assert d["first_invalid_span"] is None
-    assert json.loads(s.geometry_canonical_json())["first_invalid_relative"] is None
+    # topology keeps the (null) first-invalid offset; geometry has no spans/ranks
+    assert json.loads(s.topology_canonical_json())["first_invalid_relative"] is None
+    g = json.loads(s.geometry_canonical_json())
+    assert g["local_invalid_descriptors"] == []
+    assert g["narrowest_invalid_width"] is None
+    assert g["widest_invalid_width"] is None
 
 
 def test_mixed_error_counts_and_serialization() -> None:
