@@ -14,6 +14,13 @@ from mcore_1.check_tree import (
     check_deletion,
     check_tree,
 )
+from mcore_1.deletion_shape import (
+    SCHEMA_VERSION as DELETION_SHAPE_SCHEMA_VERSION,
+    DeletionShape,
+    NodeRecord,
+    node_records,
+    summarize_deletion_shape,
+)
 from mcore_1.encoder import EncodeStep, dna_to_trits, iter_encode_steps
 from mcore_1.errors import ErrorKind
 from mcore_1.tree import (
@@ -37,6 +44,11 @@ __all__ = [
     "check_deletion",
     "dna_to_trits",
     "iter_encode_steps",
+    "DeletionShape",
+    "NodeRecord",
+    "node_records",
+    "summarize_deletion_shape",
+    "DELETION_SHAPE_SCHEMA_VERSION",
     "build_binary_metrical_tree",
     "build_frozen_after_deletion_trits",
     "build_post_deletion_frozen_tree",
