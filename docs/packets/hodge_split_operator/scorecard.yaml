@@ -1,0 +1,74 @@
+artifact_id: SYM-INT-MCORE-HODGE-2026-01
+status: hypothesis_packet
+handling: internal_not_release_surface
+owner: Jacob Walker
+branch: research/hodge-split-splat
+package_path: docs/packets/hodge_split_operator
+
+decision_states:
+  - coherent_formal_layer
+  - useful_analogy_only
+  - rejected
+
+assumptions:
+  dimension_declared: false
+  orientation_declared: false
+  metric_declared: false
+  coefficient_lift_declared: false
+  observer_definition_declared: false
+  star_square_sign_declared: false
+
+formal_tests:
+  reconstruction:
+    status: not_run
+    metric: reconstruction_residual
+    pass_condition: declared_tolerance_met_on_all_non_degenerate_fixtures
+  star_square:
+    status: not_run
+    metric: sign_adjusted_residual
+  orientation_reversal:
+    status: not_run
+  metric_sensitivity:
+    status: not_run
+  topology_sensitivity:
+    status: not_run
+  observer_change:
+    status: not_run
+  perturbation_attribution:
+    status: not_run
+  null_separation:
+    status: not_run
+  check_tree_bridge:
+    status: unproved
+    allowed_outcomes:
+      - proved_on_restricted_class
+      - bounded_correspondence
+      - no_meaningful_correspondence
+
+claim_tiers:
+  observed:
+    - electromagnetic_field_is_packaged_before_observer_split
+    - hodge_star_requires_metric_and_orientation
+    - repository_has_no_named_hodge_spacetime_operator_in_audited_surface
+  plausible:
+    - dual_split_layer_may_connect_geometric_and_sequential_views
+  speculative:
+    - tree_conservation_may_admit_cochain_interpretation
+  forbidden:
+    - mcore_unifies_spacetime
+    - mcore_derives_maxwell
+    - hodge_dual_proves_mcore
+
+promotion_gate:
+  assumptions_explicit: false
+  reproducible_command: false
+  result_artifact: false
+  nulls_fail: false
+  claim_tiers_reviewed: true
+  next_owner_action: implement_only_after_assumption_freeze
+
+current_score:
+  mathematical_readiness: 0.20
+  implementation_readiness: 0.00
+  external_claim_readiness: 0.00
+  recommendation: freeze_assumptions_before_code
