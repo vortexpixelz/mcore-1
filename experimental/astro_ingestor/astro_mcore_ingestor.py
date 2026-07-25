@@ -79,8 +79,8 @@ def _gabor_atom(
 ) -> np.ndarray:
     """Single Gabor atom: Gaussian-windowed sinusoid.
 
-    Satisfies σ_t * σ_f ≥ 1/(4π); empirical excess ≈1.14× for σ=0.008 s
-    (real-sinusoid carrier asymmetry — see gjb2_sonification analysis).
+    Satisfies σ_t * σ_f ≥ 1/(4π); empirical excess ≈1.12× for σ=0.008 s
+    (finite-sample discretisation — see gjb2_sonification analysis).
     """
     n = int(sample_rate * duration)
     t = np.linspace(0.0, duration, n, endpoint=False)
