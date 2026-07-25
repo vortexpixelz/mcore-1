@@ -104,15 +104,15 @@ The c.35delG mutation — most common cause of hereditary hearing loss in Europe
 
 ![GJB2 mismatch step function](notebooks/gjb2_mismatch_from_audio.png)
 
-Zero mismatch upstream of position 35. Near-100% mismatch downstream. The step function is the carry cascade, visible in audio.
+Zero mismatch upstream of position 35. Roughly 61% mismatch downstream — measured densities are **0.605** for c.35delG (390/645 positions) and **0.613** for c.235delC (273/445), per the auto-generated `paper/figures/analysis_stats.tex` in [gjb2-mcore-sonification](https://github.com/vortexpixelz/gjb2-mcore-sonification). The step function is the carry cascade, visible in audio.
 
 ### Gabor uncertainty bound
 
 The GJB2 sonification encodes each trit as a Gaussian-windowed tone (Gabor atom) at 800 / 1600 / 3200 Hz. Empirical measurement across all 681 atoms in the wildtype sequence:
 
-- Empirical σ_t × σ_f = **0.0907** (theoretical minimum 1/(4π) = 0.0796, ratio **1.14×**)
+- Empirical σ_t × σ_f = **0.0895** (theoretical minimum 1/(4π) = 0.0796, ratio **1.12×**), from the executed `notebooks/gabor_analysis.ipynb`. The independent estimator in `code/analysis.py` of [gjb2-mcore-sonification](https://github.com/vortexpixelz/gjb2-mcore-sonification) gives 0.0896 (1.13×), agreeing to four decimal places per trit.
 - 100% lossless round-trip: FFT decoder recovers all 681 trits with zero errors
-- The 1.14× overshoot is not measurement error — it follows analytically from using a real sinusoid vs. complex exponential
+- Every atom satisfies σ_t × σ_f ≥ 1/(4π); the overshoot is a finite-sample discretisation effect, not a violation of the bound
 
 ![Gabor uncertainty histogram](notebooks/gabor_uncertainty.png)
 

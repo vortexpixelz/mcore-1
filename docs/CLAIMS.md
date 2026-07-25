@@ -27,7 +27,7 @@ artifacts in this repository. Use direct language: "enforces,"
 | Prastara completion generalizes Pingala's algorithm to ternary with polynomial-time budget pruning | `src/mcore_py/algebra.py` (`complete`, `enumerate_patterns`) |
 | GJB2 sonification pipeline: 48 kHz, 40 ms Gabor clicks, 800/1600/3200 Hz, NM_004004.6 NCBI fetch | `gjb2-mcore-sonification/code/gjb2_sonification.py` |
 | GJB2 WAV artifacts committed: wildtype, c.35delG, c.235delC | `gjb2-mcore-sonification/` repo root |
-| Empirical σ_t × σ_f = 0.0907 (1.14× theoretical minimum) for GJB2 8 ms windows | `gjb2-mcore-sonification` analysis notebooks |
+| Empirical σ_t × σ_f = 0.0895 (1.12× theoretical minimum) for GJB2 8 ms windows; independently reproduced as 0.0896 (1.13×) | `notebooks/gabor_analysis.ipynb` (executed, cell 5); `gjb2-mcore-sonification` `code/analysis.py::_time_freq_sigmas` |
 | `weights_for_check_tree` shift: signed {-1, 0, +1} -> unsigned {0, 1, 2} (S1/S2/S3) | `experimental/astro_ingestor/solar_ingestor.py` |
 | `np.concatenate` integer-indexed Gabor render produces zero array-boundary bleeding | `gjb2_sonification.py`; all `experimental/astro_ingestor/` ingestors |
 
