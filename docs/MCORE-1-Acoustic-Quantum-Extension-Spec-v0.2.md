@@ -63,9 +63,9 @@ Targeted epigenetic shift or gene-expression change
 | S1 carrier | 800 Hz |
 | S2 carrier | 1 600 Hz |
 | S3 carrier | 3 200 Hz |
-| Gabor uncertainty product | σ_t × σ_f = 0.091 (1/(4π) ≈ 0.080, ×1.14 — expected for real sinusoid vs complex exponential) |
+| Gabor uncertainty product | σ_t × σ_f = 0.0895 (1/(4π) ≈ 0.0796, ×1.12) |
 
-**Empirical result (gabor_analysis.ipynb §2):** atoms sit within 14% of the Heisenberg–Gabor uncertainty bound.
+**Empirical result (gabor_analysis.ipynb §2):** atoms sit within 12% of the Heisenberg–Gabor uncertainty bound. An independent estimator in `gjb2-mcore-sonification` (`code/analysis.py::_time_freq_sigmas`, 2 s zero-pad rather than 1 s) gives 0.0896 (×1.13), agreeing to four decimal places per trit.
 
 ### 2.2 FFT Decoder
 
@@ -147,7 +147,9 @@ Trit encoding of DNA sequences:
 Delta WAVs encode `(mutation_trit − wildtype_trit) % 3` per position.
 Trit 0 = no change; trit 1 or 2 = mismatch.
 The GJB2 c.35delG frameshift produces a step function: trit=0 upstream of
-position 35, near-100% trit≠0 downstream.
+position 35, then roughly 60% trit≠0 downstream (measured 0.598 for c.35delG
+and 0.602 for c.235delC in `gabor_analysis.ipynb` §4; the exact prefix-aligned
+comparison in `gjb2-mcore-sonification` gives 0.605 and 0.613).
 
 ---
 

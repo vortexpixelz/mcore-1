@@ -352,7 +352,7 @@ md([
     "randomly generated mismatches; here we use the actual WAV files.\n",
     "\n",
     "**Expected result**: clean signal (trit=0 = 800 Hz) upstream of the deletion,\n",
-    "then near-100% mismatch (trit ≠ 0) downstream — a step function at position 35.",
+    "then a sustained ~60% mismatch (trit ≠ 0) downstream — a step function at position 35.",
 ]),
 
 code("""
