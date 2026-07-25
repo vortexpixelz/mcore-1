@@ -67,12 +67,17 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    # The package declares no runtime dependencies; [dev] supplies pytest, ruff and numpy.
+    # The package declares no runtime dependencies, so [dev] is what this leg installs.
+    #
     # The pinned scientific stack is deliberately NOT installed here: requirements.txt pins
-    # numpy/scipy releases that require Python >= 3.11, which would break the 3.10 leg. Tests
-    # needing that stack are already guarded (skipif in test_s3_analysis_scripts.py,
-    # importorskip in the MCP smoke tests) and skip cleanly, so this leg validates the pure
-    # package across the full range declared in pyproject.toml.
+    # numpy/scipy releases that require Python >= 3.11, so installing it would break the
+    # 3.10 leg outright. See the `reproducibility` job below for the pinned-stack run.
+    #
+    # This works because [dev] carries everything the suite actually needs — including scipy
+    # (mcore_py.audio's cochlear decoder, exercised unguarded by tests/test_audio.py) and
+    # PyYAML (read by tests/test_schema_factory.py). The 3 tests that skip here are the
+    # genuinely optional paths: test_s3_analysis_scripts.py needs pandas/sklearn/requests,
+    # and the two MCP smoke tests need fastmcp. Expect 278 passed, 3 skipped on every leg.
     - name: Install package and dev dependencies
       run: |
         python -m pip install --upgrade pip
