@@ -9,7 +9,7 @@ requests==2.33.0
 
 # Notebook execution
 jupyter==1.1.1
-jupyterlab==4.6.1
+jupyterlab==4.6.2
 nbconvert==7.17.1
 nbclient==0.10.4
 jupyter_client==8.8.0
