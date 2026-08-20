@@ -71,6 +71,9 @@ def test_psa001_boundary_contract_fails_closed() -> None:
     with pytest.raises(ValueError, match="Unsupported boundary schema"):
         run_dna_shard("ACGT", BoundaryState(schema_version="unknown"))
 
+    with pytest.raises(ValueError, match="Unsupported transform"):
+        run_dna_shard("ACGT", BoundaryState(transform_id="unknown"))
+
 
 def test_psa001_complete_matrix_is_bounded_null() -> None:
     dna = _fixture()
