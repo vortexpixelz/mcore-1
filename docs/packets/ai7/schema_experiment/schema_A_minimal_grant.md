@@ -4,37 +4,43 @@ schema_version: 0.1
 packet_version: 0.1
 status: filled
 source_bundle: Bundle 1
+date_filled: 2026-06-23
 ---
 
 # Schema A: Minimal Grant Packet
 
 ## Claim
 
-A depth-aware Gabor sigma register can be mapped bijectively to a Hölder regularity
-exponent via a deterministic cascade model, providing a falsifiable diagnostic proxy
-for turbulence regularity without requiring a Navier-Stokes solution.
+Carry-cascade diagnostic structure — as implemented in MCORE and demonstrated on GJB2 genomic
+data — can be adapted to detect pre-failure states in LLM reasoning trajectories, enabling a
+measurable Trustworthy AI diagnostic.
 
 ## Problem
 
-Hölder regularity exponents for NS solutions are theoretically bounded but
-experimentally inaccessible in real flows. A purely signal-processing proxy — if
-well-calibrated — could serve as a benchmark target for synthetic turbulence datasets.
+LLM reasoning failures are difficult to detect before they produce a wrong final answer.
+Existing monitoring approaches rely on output-level signals. A trajectory-level diagnostic
+based on cascade propagation structure would catch failures earlier and more formally.
 
 ## Evidence
 
-- Round-trip identity: `sigma_from_holder(holder_alpha_from_sigma(σ, σ₀, d), σ₀, d) = σ`
-  holds to machine precision for all register anchors in the unclamped region.
-- `sigma_2/sigma_0 = 0.5` sits within the K41 Hölder range (1/3, 1).
-- Vorticity sweep shows monotone `alpha_eff` reduction to 0 at `omega_norm = 1.5`.
-- 273 passing tests validate the underlying ternary weight algebra.
+- `check_tree` is an implemented, formally verified carry-cascade diagnostic with typed error
+  kinds (OVERFLOW, CONSERVATION, BUDGET, TENSION_UNRESOLVED, EMPTY_CONSTITUENT); all covered
+  by tests in `src/mcore_py/checker.py` and `tests/test_mcore.py`.
+- The GJB2 c.35delG frameshift produces a measurable zero-to-near-100% mismatch step function
+  visible in audio WAV files; σ_t × σ_f = 0.0907 (1.14× theoretical minimum); 100% lossless
+  round-trip confirmed.
+- `vortexpixelz/0xparallax` provides a documented Run/Step trace gap in an agent/orchestration
+  substrate — a structural analog to the cascade gap under study.
 
 ## Experiment
 
-Run `effective_alpha` against a published synthetic turbulence vorticity field
-(e.g., Johns Hopkins Turbulence Database). If `alpha_eff` tracks the known Hölder
-exponent trend, the calibration is plausible. If it does not, the model is falsified.
+`mcore-cascade-eval`: apply MCORE carry-cascade diagnostics to LLM reasoning trace data from
+a public benchmark (e.g., GSM8K or ARC chain-of-thought completions). Measure whether
+cascade-structure errors (OVERFLOW, CONSERVATION) in mid-trace steps predict final-answer
+failure better than a simple length or perplexity baseline.
 
 ## Ask
 
-Compute time on a turbulence DNS dataset for one calibration run of `effective_alpha`
-against known vorticity profiles.
+Fund `mcore-cascade-eval` as a pilot study: scoped dataset, one model family, one baseline
+comparison, reproducible eval harness in `vortexpixelz/mcore-1`.
+

@@ -4,53 +4,59 @@ schema_version: 0.1
 packet_version: 0.1
 status: filled
 source_bundle: Bundle 1
+date_filled: 2026-06-23
 ---
 
 # Schema C: Table Flip Packet
 
 ## Receipt
 
-NS-001 Gabor-Hölder toy diagnostic merged to main (PR #35, June 2026).
-Module: `experimental/ns001_gabor_holder.py`. Five Copilot review rounds addressed.
-Round-trip identity verified. DIANEW Study A EVT protocol added in same pull.
+- `check_tree` — formal carry-cascade verifier; five typed error kinds; CI-passing tests in
+  `src/mcore_py/checker.py`.
+- GJB2 c.35delG WAV step-function — zero-to-near-100% mismatch; σ_t × σ_f = 0.0907; 100%
+  lossless round-trip; all artifacts committed to repo.
+- 0xparallax Run/Step trace gap — direct-fetched 2026-06-16; exists in repo.
+- `mcore-cascade-eval` named in receipt ledger 2026-06-16 as concept only — NOT yet a repo file.
 
 ## Claim
 
-The MCORE-1 sigma register, originally designed for audio, contains a latent
-Hölder regularity structure that can be extracted deterministically and used as a
-falsification target for NS blow-up proxy models.
+MCORE carry-cascade diagnostics can detect pre-failure states in LLM reasoning trajectories,
+and a Cascade Index derived from this approach is worth testing as a Trustworthy AI diagnostic.
 
 ## Ledger
 
 ### Observed
 
-- `holder_alpha_from_sigma` and `sigma_from_holder` are exact inverses in the
-  unclamped region (`depth > 0`, `alpha ∈ (0,1)`).
-- `sigma_2/sigma_0 = 0.5` (measured from production files).
-- `effective_alpha` clamps to `[0,1]`; floor reached at `omega_norm = 1.5`.
-- 273 core tests pass; 5 DIANEW EVT tests pass.
+- MCORE `check_tree` is an implemented, formally verified carry-cascade verifier.
+- GJB2 application produces measurable, reproducible cascade detection results.
+- The Run/Step trace gap in 0xparallax is a documented structural analog to the cascade gap.
 
 ### Plausible
 
-- `sigma_2/sigma_0 = 0.5` may be calibratable against K41 (exponent ~1/3).
-- The additive vorticity reduction model qualitatively tracks regularity loss.
+- LLM chain-of-thought traces contain carry-cascade-detectable structure analogous to GJB2.
+- A Cascade Index computed on mid-trace steps would correlate with final-answer correctness.
+- The 0xparallax Run/Step trace gap is a viable injection point for MCORE diagnostics.
 
 ### Speculative
 
-- Rising `alpha_eff → 0` might serve as a blow-up early-warning signal in
-  synthetic turbulence fields.
+- The Cascade Index outperforms perplexity and length baselines on reasoning benchmarks.
+- MCORE error taxonomy (OVERFLOW, CONSERVATION, BUDGET) maps cleanly to LLM failure modes.
+- This constitutes a novel reasoning-stability metric suitable for NSF Trustworthy AI.
 
 ### Forbidden for now
 
-- NS-001 solves Navier-Stokes. Proof of global regularity. Exact K41 measurement
-  before experimental validation against real turbulence data.
+- Do not claim `mcore-cascade-eval` is implemented until a repo file is direct-fetched.
+- Do not claim the Cascade Index predicts LLM failure without empirical benchmark data.
+- Do not use GJB2 step-function as proof of LLM application; it is an analogy receipt only.
+- Do not cite NSF submission or acceptance without a documented submission receipt.
 
 ## Sentence
 
-The sigma register is a signal-processing artifact that accidentally encodes a
-falsifiable regularity proxy — and that accident is worth testing.
+The MCORE carry-cascade pattern is proven in GJB2; it is plausible but undemonstrated in
+LLM trajectories; the next action is to create `mcore-cascade-eval` as a concrete repo file.
 
 ## Ask
 
-One DNS calibration run to determine whether `effective_alpha` tracks known Hölder
-exponents in published synthetic turbulence data.
+Fund `mcore-cascade-eval` as a scoped pilot: one LLM family, two benchmarks, one baseline
+comparison, reproducible harness committed to `vortexpixelz/mcore-1`.
+

@@ -5,64 +5,72 @@ packet_version: 0.1
 status: filled
 source_bundle: Bundle 1
 date_created: 2026-06-23
+date_filled: 2026-06-23
 ---
 
 # Source Bundle Notes
 
 ## Raw source inventory
 
-MCORE-1 experimental lane — work completed June 2026.
+Bundle 1 is the early AI7 research bundle assembled from the following directly-verified sources:
 
-- `experimental/ns001_gabor_holder.py` — NS-001 Gabor-Hölder toy diagnostic module
-- `docs/badabing/NS001_GABOR_HOLDER_VORTICITY_PACKET.md` — claim-tier registry for NS-001
-- `experimental/dianew_evt_study_a.py` — DIANEW Study A EVT declustering protocol
-- `docs/badabing/DIANEW_STUDY_A_PROTOCOL.md` — protocol spec
-- `experimental/schema_factory/` — schema selection scaffold (this experiment)
-- `tests/` — 278 passing tests, 71% coverage of `src/mcore_py/`
+- `receipts/2026-06-16-symonic-receipt-ledger.md` — dated receipt ledger with claim tiers
+- `docs/CLAIMS.md` — MCORE-1 epistemic boundaries and claims registry
+- `docs/experiments/schema_selection_ai7_packet.md` — experiment design spec
+- `docs/VOR-117_REPOSITORY_AUDIT.md` — repository audit structure and bucket framework
+- `docs/packets/ai7/schema_experiment/CLAIM_TIERS.md` — claim tier definitions
+- Repo: `vortexpixelz/mcore-1`, branch `main` (all files above direct-fetched)
+
+Bundle 1 focus: Can the MCORE carry-cascade diagnostic pattern be adapted to detect
+pre-failure states in LLM reasoning trajectories? Can this motivate an NSF Trustworthy AI ask?
 
 ## Receipts
 
-- NS-001: `holder_alpha_from_sigma` and `sigma_from_holder` are exact inverses for
-  `depth > 0`, `alpha ∈ (0, 1)` (the unclamped region). Verified by round-trip test
-  in CLI demo: `sigma_back` matches to `< 1e-12` for all three register anchors.
-- Sigma register anchors confirmed in production files: `sigma_0=0.002` (depth 0),
-  `sigma_1=0.0015` (depth 1), `sigma_2=0.001` (depth 2). Ratio `sigma_2/sigma_0 = 0.5`.
-- `effective_alpha` clamps to `[0, 1]`; at `omega_norm=1.5`, `alpha_eff` hits 0.0 (floor).
-- DIANEW Study A: EVT declustering retains one maximum per cluster; GPD fit produces
-  finite conditional endpoint for negative shape; 5 tests passing.
-- 273 tests passing pre-pull; 278 passing post-pull (DIANEW added 5).
-- Schema factory test: red → green cycle completed in this session.
+Observed facts, files, test outputs, citations, repo links, measurements.
+
+- `check_tree` implements a formal carry-cascade verifier with typed error kinds (OVERFLOW,
+  CONSERVATION, BUDGET, TENSION_UNRESOLVED, EMPTY_CONSTITUENT); proven by `src/mcore_py/checker.py`
+  and `tests/test_mcore.py`.
+- GJB2 c.35delG frameshift produces a zero-to-near-100% mismatch step function visible in audio
+  WAV files; directly measured, σ_t × σ_f = 0.0907 (1.14× theoretical minimum).
+- `vortexpixelz/0xparallax` exists, provides agent/orchestration substrate with documented
+  Run/Step trace gap; confirmed in receipt ledger 2026-06-16.
+- The MCORE/GJB2 trajectory-divergence diagnostic is implemented and produces auditable results
+  from a fresh repo clone.
+- `mcore-cascade-eval` was named as a concept in the 2026-06-16 receipt ledger; status at time
+  of capture: `[SPEC FROM CHAT / NOT YET DIRECT-FETCHED AS REPO FILE]`.
+- NSF Trustworthy AI program exists as a funding target; no acceptance or submission receipt in hand.
+- The receipt ledger explicitly separates ESTABLISHED / PLAUSIBLE / CONJECTURAL / FORBIDDEN tiers
+  and enforces "no phantom receipts" as operating doctrine.
 
 ## Claims already present in the bundle
 
-- [ESTABLISHED] The sigma→alpha and alpha→sigma functions are exact inverses in the
-  unclamped region. No PDE claim attached.
-- [PLAUSIBLE] `sigma_2/sigma_0 = 0.5` numerically neighbours the K41 Hölder range
-  (1/3, 1); could serve as calibration target against synthetic turbulence benchmarks.
-- [ANALOGY] Three-level sigma cascade mirrors Richardson energy cascade structurally.
-- [CONJECTURE] Vorticity-adjusted `alpha_eff → 0` may signal approach to a singularity
-  regime in synthetic fields; unvalidated against real turbulence data.
-- [CONJECTURE] EVT declustering on neural spike trains may separate signal from
-  extreme-noise events; unvalidated on real neural data.
+Claims the bundle appears to make. Do not upgrade them yet.
+
+- [ESTABLISHED] MCORE/GJB2 gives an implemented trajectory-divergence diagnostic pattern.
+- [ESTABLISHED] 0xparallax gives an agent/orchestration substrate with a documented Run/Step trace gap.
+- [PLAUSIBLE] The carry-cascade diagnostic pattern can be adapted to observable LLM reasoning trajectories.
+- [CONJECTURAL] A Cascade Index derived from MCORE predicts LLM final-answer failure better than simple baselines.
+- [ASK] Fund `mcore-cascade-eval`: apply MCORE carry-cascade diagnostics to LLM reasoning trace data.
 
 ## Open questions
 
-- Does `sigma_2/sigma_0 = 0.5` survive contact with a synthetic K41 benchmark?
-- What is the right `lambda_omega` / `eta_phase` calibration for real vorticity data?
-- Can DIANEW Study A be validated against a published EVT neuroscience dataset?
-- Should the schema factory produce typed schemas (Pydantic) or stay YAML-only?
+- Does the MCORE trace gap in 0xparallax map structurally to the kind of gap that precedes LLM failure?
+- What LLM reasoning trace format would `mcore-cascade-eval` need as input?
+- Is NSF Trustworthy AI the right funding vehicle or should this target a different mechanism?
+- What is the minimal falsification test for the Cascade Index claim?
 
 ## Possible AI7 / NSF fit
 
-- NS-001 is a falsification target: if `alpha_eff` stays bounded away from 0 under
-  real turbulence vorticity, the conjecture is falsified — that is useful science.
-- DIANEW EVT protocol is designed as a pre-processing step for neural spike analysis;
-  could fit a neuroscience data-infrastructure grant.
-- The ternary weight algebra (273 tests, proven cascade theorems) is the stable core
-  that makes both overlays credible.
+- NSF Trustworthy AI: reasoning stability as a measurable, falsifiable property is well-aligned.
+- The carry-cascade framing provides a formal diagnostic structure that is not just vibes.
+- The GJB2 step-function result is a concrete existence proof that cascade structure is detectable
+  in a different domain; it makes the hypothesis more credible than a pure LLM-only pitch.
+- A minimal eval harness (`mcore-cascade-eval`) could be scoped as a pilot study.
 
 ## Notes that should not become claims yet
 
-- The NS-001 module is explicitly TOY DIAGNOSTIC — NOT PROOF-BEARING.
-- No NS solution claim. No global regularity claim. No exact K41 measurement.
-- DIANEW Study A is a protocol scaffold; the EVT fit has not been run on real data.
+- Do not claim `mcore-cascade-eval` is implemented until a repo file is direct-fetched.
+- Do not claim the Cascade Index predicts LLM failure without benchmark data.
+- Do not cite the GJB2 step-function result as proof of LLM application; it is an analogy receipt only.
+- Do not claim NSF submission or funding without a submission receipt.
