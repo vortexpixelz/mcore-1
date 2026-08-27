@@ -1,0 +1,64 @@
+version: 2
+
+# Scheduled version updates. Dependabot *security* updates are enabled separately in repo
+# settings and continue to run independently of this file — this config adds the proactive
+# half, so routine staleness is tracked rather than only vulnerabilities that trigger alerts.
+#
+# Everything is grouped and given a low open-PR limit on purpose: the repository already
+# carries a review backlog, and a flood of single-dependency PRs would make it worse.
+
+updates:
+  # Root Python project: pyproject.toml + uv.lock. Matches the ecosystem GitHub already
+  # detects here (existing security branches are named dependabot/uv/uv-*).
+  #
+  # The root requirements.txt is deliberately NOT covered: the uv ecosystem reads
+  # pyproject.toml/uv.lock only, and adding a pip entry at "/" would have Dependabot manage
+  # pyproject.toml twice. The two manifests have already drifted (requirements.txt pins
+  # pandas==2.2.3 while uv.lock resolves 3.0.3 on >=3.11); which one is authoritative is an
+  # open question, and opening conflicting PRs is not the way to answer it.
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+    groups:
+      uv:
+        patterns:
+          - "*"
+
+  # Workflow actions — currently untracked by anything.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Appwrite function bundles: standalone requirements.txt, no pyproject, so no overlap
+  # with the uv entry above.
+  - package-ecosystem: "pip"
+    directory: "/functions/check_tree"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 1
+    groups:
+      check-tree-function:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "pip"
+    directory: "/functions/mcore-mcp"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 1
+    groups:
+      mcore-mcp-function:
+        patterns:
+          - "*"

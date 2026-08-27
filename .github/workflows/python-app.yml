@@ -10,7 +10,21 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  vendor-sync:
+    name: Vendored mcore_src in sync
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # functions/check_tree/mcore_src is a plain copy of src/mcore_py + src/mcore_1, produced
+    # by this same script. Nothing else forces the two to stay together, so a change landing
+    # in one and not the other would otherwise ship silently to the Appwrite function.
+    - name: Verify functions/check_tree/mcore_src matches src/
+      run: scripts/package_check_tree_bundle.sh --check
+
+  lint:
+    name: Lint (ruff)
     runs-on: ubuntu-latest
 
     steps:
@@ -21,19 +35,78 @@ jobs:
       with:
         python-version: "3.11"
 
+    - name: Install package and dev dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    # Blocking gate: syntax errors and undefined names only. This is the same rule set the
+    # previous flake8 step enforced, so the gate strength is unchanged — only the tool moved
+    # to the ruff that pyproject.toml already configures and requirements.txt already pins.
+    - name: Lint (blocking - syntax errors and undefined names)
+      run: ruff check src tests --select=E9,F63,F7,F82 --output-format=full
+
+    # Informational, mirroring the previous --exit-zero flake8 pass. The full configured
+    # rule set ([tool.ruff.lint] select = E,F,I,N,W,UP) still has a backlog; reported, not gated.
+    - name: Lint (informational - full configured ruleset)
+      run: ruff check src tests --exit-zero --statistics
+
+  build:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    # The package declares no runtime dependencies, so [dev] is what this leg installs.
+    #
+    # The pinned scientific stack is deliberately NOT installed here: requirements.txt pins
+    # numpy/scipy releases that require Python >= 3.11, so installing it would break the
+    # 3.10 leg outright. See the `reproducibility` job below for the pinned-stack run.
+    #
+    # This works because [dev] carries everything the suite actually needs — including scipy
+    # (mcore_py.audio's cochlear decoder, exercised unguarded by tests/test_audio.py) and
+    # PyYAML (read by tests/test_schema_factory.py). The 3 tests that skip here are the
+    # genuinely optional paths: test_s3_analysis_scripts.py needs pandas/sklearn/requests,
+    # and the two MCP smoke tests need fastmcp. Expect 278 passed, 3 skipped on every leg.
+    - name: Install package and dev dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Test with pytest (deterministic)
+      run: pytest --tb=short -q
+      env:
+        PYTHONHASHSEED: "42"
+
+  reproducibility:
+    name: Test with pinned stack (Python 3.11)
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    # The only configuration where the analysis-dependent tests actually execute rather
+    # than skip. Retains exactly what the previous single build job covered.
     - name: Install pinned dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -e ".[dev]"
-
-    - name: Lint with flake8
-      run: |
-        pip install flake8
-        flake8 src tests \
-          --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 src tests \
-          --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Test with pytest (deterministic)
       run: pytest --tb=short -q
@@ -42,7 +115,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, reproducibility]
 
     steps:
     - uses: actions/checkout@v4

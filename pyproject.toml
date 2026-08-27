@@ -26,7 +26,13 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0", "pytest-cov", "ruff", "numpy>=1.24"]
+# Must stay sufficient to run the full test suite on its own: `pip install -e ".[dev]"`
+# followed by `pytest` is the documented developer path, and CI relies on it for the
+# Python version matrix. scipy backs the cochlear decoder in mcore_py.audio (optional at
+# runtime, but exercised unguarded by tests/test_audio.py); PyYAML is read by
+# tests/test_schema_factory.py. Both are left unpinned so the matrix can resolve versions
+# appropriate to each interpreter.
+dev = ["pytest>=7.0", "pytest-cov", "ruff", "numpy>=1.24", "scipy>=1.10", "PyYAML>=6.0"]
 mcp = [
     "fastmcp>=2.3",
     "appwrite>=6.1",
