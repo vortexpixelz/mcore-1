@@ -417,7 +417,98 @@ __all__ = [
     "mcore_delta_error_spans",
     "resolve_clause",
     "run_pilot",
+    "run_strong_counterfeit",
+    "terminal_proof_verdict",
     "step_to_trit",
     "topology_provenance_errors",
     "verify_resolution_proof",
 ]
+
+
+def terminal_proof_verdict(
+    initial: dict[int, Clause], steps: list[ResolutionStep],
+) -> bool:
+    """Consume the entire certificate and disclose only its final validity.
+
+    Continue checking declared clauses after a bad inference, accumulating failure.
+    This deliberately non-localizing interface is not a last-clause-only check:
+    the unchanged empty conclusion alone cannot detect a forged justification.
+    """
+    known = dict(initial)
+    valid = True
+    for step in steps:
+        resolvent = None
+        if step.left in known and step.right in known:
+            resolvent = resolve_clause(known[step.left], known[step.right], step.pivot)
+        local_ok = (
+            step.sid not in known
+            and resolvent is not None
+            and resolvent == _canonical_clause(set(step.clause))
+        )
+        valid = local_ok and valid
+        known[step.sid] = step.clause
+    return bool(valid and steps and steps[-1].clause == ())
+
+
+def run_strong_counterfeit(*, n: int = 24, forge_step_index: int = 3) -> dict[str, object]:
+    """V3 scenario using the unchanged V2 adapter, with a downstream suffix.
+
+    Ground truth and terminal verdicts are never inputs to the MCORE adapter.
+    Hashes cover canonical JSON artifacts included in the receipt.
+    """
+    import hashlib
+    import json
+    from dataclasses import asdict
+
+    if not 3 <= forge_step_index < n:
+        raise ValueError("strong counterfeit requires a forge followed by descendants")
+    clauses, intact = make_implication_chain(n)
+    initial = {cid: clause for cid, clause in clauses.items() if cid <= n + 1}
+    forged = forge_parent_reference(intact, step_index_1=forge_step_index)
+    intact_ok, _ = verify_resolution_proof(initial, intact)
+    forged_ok, first_bad = verify_resolution_proof(initial, forged)
+    if not intact_ok or forged_ok or first_bad != forged[forge_step_index - 1].sid:
+        raise ValueError("counterfeit ground-truth gate failed")
+
+    # The detector receives only the frozen intact topology and observed syntax.
+    control = topology_provenance_errors(intact, intact)
+    errors = topology_provenance_errors(intact, forged)
+    positions = [row["step_index"] for row in errors]
+    artifacts = {
+        "initial_clauses": initial,
+        "intact_steps": [asdict(step) for step in intact],
+        "forged_steps": [asdict(step) for step in forged],
+    }
+    hashes = {
+        name: hashlib.sha256(
+            json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        for name, value in artifacts.items()
+    }
+    return {
+        "benchmark": "MINT-GLACIER-847291 / V3 strong counterfeit",
+        "adapter": "proof-edge-span-v2 (unchanged; intact topology required)",
+        "claim_boundary": "Certificate-auditing benchmark only; not evidence about P vs NP",
+        "comparison_boundary": "Non-localizing terminal interface; no runtime advantage claim",
+        "proof_steps": n,
+        "ground_truth": {"step_index": forge_step_index, "step_id": first_bad},
+        "downstream_descendants": n - forge_step_index,
+        "terminal_only": {
+            "intact": terminal_proof_verdict(initial, intact),
+            "forged": terminal_proof_verdict(initial, forged),
+        },
+        "mcore": {
+            "intact_errors": control,
+            "forged_errors": errors,
+            "exact_localization": positions == [forge_step_index],
+            "localization_distance": abs(positions[0] - forge_step_index) if positions else None,
+        },
+        "artifacts": artifacts,
+        "sha256": hashes,
+    }
+
+
+if __name__ == "__main__":
+    import json
+
+    print(json.dumps(run_strong_counterfeit(), indent=2, sort_keys=True))
