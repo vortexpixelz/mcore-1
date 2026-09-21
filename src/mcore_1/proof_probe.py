@@ -1,9 +1,12 @@
-"""Experimental proof-chain corruption probe for MCORE-1.
+"""Experimental proof-chain corruption probes for MCORE-1.
 
 This module is a calibration harness, not a complexity-theory result. It builds a
 small locally checkable resolution proof, forges one provenance edge while keeping
-the derived clause unchanged, and asks whether a frozen MCORE tree localizes the
-structural disturbance.
+the derived clause unchanged, and compares two frozen MCORE adapters:
+
+V1: compress each proof line to one trit.
+V2: represent each inference as a local ordered provenance constituent whose
+    children encode graph-theoretic edge spans.
 
 Claim boundary: certificate-auditing benchmark only; no inference about P vs NP.
 """
@@ -18,7 +21,8 @@ from mcore_1.tree import (
     build_binary_metrical_tree,
     descendant_orig_indices,
 )
-from mcore_py.model import Constituent
+from mcore_py.algebra import OVERFLOW, trit_add
+from mcore_py.model import Constituent, Level, ProsodicUnit, Trit
 
 
 Clause = tuple[int, ...]
@@ -132,6 +136,11 @@ def forge_parent_reference(
     return out
 
 
+# ---------------------------------------------------------------------------
+# V1: scalar proof-line adapter
+# ---------------------------------------------------------------------------
+
+
 def step_to_trit(step: ResolutionStep) -> int:
     """Map a proof-line checksum to 0, 1, or 2 without using a validity label."""
 
@@ -181,6 +190,154 @@ def mcore_delta_error_spans(
     return sorted(forged_errors - baseline_errors, key=lambda row: (row[1] - row[0], row))
 
 
+# ---------------------------------------------------------------------------
+# V2: topology-native local provenance constituents
+# ---------------------------------------------------------------------------
+
+
+def _derived_step_positions(steps: list[ResolutionStep]) -> dict[int, int]:
+    return {step.sid: index for index, step in enumerate(steps, 1)}
+
+
+def _edge_span_trit(
+    parent_id: int,
+    *,
+    current_index: int,
+    derived_positions: dict[int, int],
+) -> Trit:
+    """Quantize a proof edge by backward span in the derived-step topology.
+
+    Input-clause references and immediate-predecessor derived references are S1.
+    A one-step skip is S2. Longer skips are S3.
+
+    This is a graph feature, not a validity label. The calibration forge changes
+    only one left edge from immediate predecessor to a one-step skip.
+    """
+
+    parent_index = derived_positions.get(parent_id)
+    if parent_index is None:
+        return Trit.S1
+
+    span = current_index - parent_index
+    if span <= 1:
+        return Trit.S1
+    if span == 2:
+        return Trit.S2
+    return Trit.S3
+
+
+def _provenance_constituent(
+    baseline_step: ResolutionStep,
+    observed_step: ResolutionStep,
+    *,
+    step_index: int,
+    baseline_positions: dict[int, int],
+) -> Constituent:
+    """Build one frozen local proof-provenance constituent.
+
+    The parent weight is declared by the intact edge topology. The children are
+    the observed proof's left/right provenance edges.
+    """
+
+    baseline_left = _edge_span_trit(
+        baseline_step.left,
+        current_index=step_index,
+        derived_positions=baseline_positions,
+    )
+    baseline_right = _edge_span_trit(
+        baseline_step.right,
+        current_index=step_index,
+        derived_positions=baseline_positions,
+    )
+    frozen_parent = trit_add(baseline_left, baseline_right)
+    if frozen_parent is OVERFLOW:
+        raise ValueError(
+            f"baseline topology overflows at proof step {step_index}; "
+            "choose a calibration whose intact local gadget is representable"
+        )
+
+    observed_left = _edge_span_trit(
+        observed_step.left,
+        current_index=step_index,
+        derived_positions=baseline_positions,
+    )
+    observed_right = _edge_span_trit(
+        observed_step.right,
+        current_index=step_index,
+        derived_positions=baseline_positions,
+    )
+
+    parent = ProsodicUnit(
+        weight=frozen_parent,
+        level=Level.L1_AKSARA,
+        label=f"proof-step:{baseline_step.sid}",
+    )
+    parent.features["proof_step_index"] = step_index
+    parent.features["proof_step_id"] = baseline_step.sid
+    parent.features["adapter"] = "proof-edge-span-v2"
+
+    left = ProsodicUnit(
+        weight=observed_left,
+        level=Level.L0_MATRA,
+        label=f"left-parent:{observed_step.left}",
+    )
+    left.features["proof_parent_id"] = observed_step.left
+    left.features["edge_role"] = "left"
+
+    right = ProsodicUnit(
+        weight=observed_right,
+        level=Level.L0_MATRA,
+        label=f"right-parent:{observed_step.right}",
+    )
+    right.features["proof_parent_id"] = observed_step.right
+    right.features["edge_role"] = "right"
+
+    return Constituent(parent=parent, children=[left, right])
+
+
+def topology_provenance_errors(
+    baseline_steps: list[ResolutionStep],
+    observed_steps: list[ResolutionStep],
+) -> list[dict[str, object]]:
+    """Return local MCORE checker errors for topology differences."""
+
+    if len(baseline_steps) != len(observed_steps):
+        raise ValueError("baseline and observed proof chains must have equal length")
+
+    baseline_positions = _derived_step_positions(baseline_steps)
+    errors: list[dict[str, object]] = []
+
+    for index, (baseline, observed) in enumerate(
+        zip(baseline_steps, observed_steps, strict=True),
+        1,
+    ):
+        if baseline.sid != observed.sid or baseline.clause != observed.clause:
+            raise ValueError(
+                "topology probe requires stable step ids and conclusions; "
+                "only provenance edges may differ"
+            )
+
+        gadget = _provenance_constituent(
+            baseline,
+            observed,
+            step_index=index,
+            baseline_positions=baseline_positions,
+        )
+        result = check_constituent(gadget)
+        if result.errors:
+            errors.append(
+                {
+                    "step_index": index,
+                    "step_id": baseline.sid,
+                    "left_parent": observed.left,
+                    "right_parent": observed.right,
+                    "error_kinds": sorted({error.kind.name for error in result.errors}),
+                }
+            )
+
+    return errors
+
+
 def run_pilot(*, n: int = 12, forge_step_index: int = 6) -> dict[str, object]:
     """Run the deterministic counterfeit-receipt calibration and return a receipt."""
 
@@ -218,6 +375,10 @@ def run_pilot(*, n: int = 12, forge_step_index: int = 6) -> dict[str, object]:
     else:
         narrowest = []
 
+    v2_intact_errors = topology_provenance_errors(intact_steps, intact_steps)
+    v2_forged_errors = topology_provenance_errors(intact_steps, forged_steps)
+    v2_error_steps = [int(row["step_index"]) for row in v2_forged_errors]
+
     forge_sid = intact_steps[forge_step_index - 1].sid
     span_contains_forge = bool(narrowest) and all(
         lo <= forge_step_index <= hi for lo, hi, _ in narrowest
@@ -237,10 +398,14 @@ def run_pilot(*, n: int = 12, forge_step_index: int = 6) -> dict[str, object]:
         "forged_verifies": forged_ok,
         "verifier_first_bad_step_id": forged_bad,
         "changed_trit_positions": changed_positions,
-        "mcore_delta_errors": delta_errors,
-        "mcore_narrowest_spans": narrowest,
-        "mcore_span_contains_forge": span_contains_forge,
+        "v1_mcore_delta_errors": delta_errors,
+        "v1_mcore_narrowest_spans": narrowest,
+        "v1_mcore_span_contains_forge": span_contains_forge,
         "exact_edge_from_frozen_leaf_delta": exact_edge_from_frozen_leaf_delta,
+        "v2_intact_errors": v2_intact_errors,
+        "v2_forged_errors": v2_forged_errors,
+        "v2_error_steps": v2_error_steps,
+        "v2_exact_localization": v2_error_steps == [forge_step_index],
     }
 
 
@@ -253,5 +418,6 @@ __all__ = [
     "resolve_clause",
     "run_pilot",
     "step_to_trit",
+    "topology_provenance_errors",
     "verify_resolution_proof",
 ]
