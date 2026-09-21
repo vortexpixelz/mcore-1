@@ -12,7 +12,7 @@ def test_counterfeit_receipt_pilot_localizes_single_forge():
     assert receipt["changed_trit_positions"] == [6]
     assert receipt["exact_edge_from_frozen_leaf_delta"] == 6
 
-    assert receipt["mcore_delta_errors"]
+    assert receipt["mcore_delta_errors"], receipt
     assert receipt["mcore_span_contains_forge"] is True
     assert all(
         lo <= 6 <= hi
