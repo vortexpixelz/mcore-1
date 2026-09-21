@@ -1,0 +1,53 @@
+{
+  "mint": "MINT-GLACIER-847291",
+  "label": "counterfeit receipt // proof-chain localization",
+  "source_commit": "86916fde7dc36293d7388f8c38b0dacc3e43b998",
+  "ci": {
+    "workflow_run_id": 35559738909,
+    "workflow_run_number": 230,
+    "build_job_id": 106210188958,
+    "docker_job_id": 106210542190,
+    "build": "success",
+    "docker": "success",
+    "pytest": {
+      "passed": 303,
+      "skipped": 2,
+      "failed": 0,
+      "duration_seconds": 4.48
+    }
+  },
+  "calibration": {
+    "proof_steps": 12,
+    "forge_step_index": 6,
+    "forge_step_id": 19,
+    "v1_scalar_adapter": {
+      "result": "negative",
+      "changed_trit_positions": [
+        6
+      ],
+      "new_mcore_delta_errors": [],
+      "interpretation": "scalar proof-line checksum preserved the local mutation but did not induce a new MCORE conservation/overflow signature"
+    },
+    "v2_topology_adapter": {
+      "intact_control_errors": [],
+      "forged_error_steps": [
+        6
+      ],
+      "exact_localization": true,
+      "forged_errors": [
+        {
+          "step_index": 6,
+          "step_id": 19,
+          "left_parent": 17,
+          "right_parent": 7,
+          "error_kinds": [
+            "CONSERVATION"
+          ]
+        }
+      ]
+    }
+  },
+  "claim_boundary": "MCORE certificate-auditing calibration only; not evidence about P vs NP.",
+  "scope_boundary": "JHTDB / NS-001 untouched.",
+  "evidence_note": "V2 values are frozen from assertions exercised by CI run 230. Both host pytest and Docker jobs completed successfully."
+}
